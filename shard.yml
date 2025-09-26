@@ -1,0 +1,13 @@
+name: chatgpt-web-server
+version: 0.1.0
+
+authors:
+  - Jason Kridner <jkridner@beagleboard.org>
+
+targets:
+  chatgpt-web-server:
+    main: src/chatgpt-web-server.cr
+
+crystal: '>= 1.14.0-dev'
+
+license: MIT
