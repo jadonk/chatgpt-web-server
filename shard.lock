@@ -16,10 +16,6 @@ shards:
     git: https://github.com/kemalcr/kemal.git
     version: 1.7.2
 
-  playwright:
-    git: https://github.com/naqvis/playwright-cr.git
-    version: 0.1.2
-
   radix:
     git: https://github.com/luislavena/radix.git
     version: 0.4.1
