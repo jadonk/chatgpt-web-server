@@ -50,5 +50,10 @@ post "/write/:key" do |env|
   end
 end
 
+get "/favicon.ico" do |env|
+  env.response.content_type = "image/x-icon"
+  File.read("public/favicon.ico")
+end
+
 Kemal.config.port = PORT
 Kemal.run
