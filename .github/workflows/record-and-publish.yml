@@ -1,13 +1,6 @@
 name: Record UI and publish media
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'src/**'
-      - 'shard.yml'
-      - 'demo/**'
-      - 'Dockerfile.app'
-      - 'docker-compose.yml'
+  push
 
 permissions:
   contents: write
@@ -17,9 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-versions: lts/*
 
       - name: Build and start the app
-        run: docker compose up --build -d app
+        run: ./run-app-in-container.sh
 
       - name: Wait for healthcheck
         run: |
@@ -32,7 +28,10 @@ jobs:
           exit 1
 
       - name: Record with Playwright (saves .webm under demo/recordings/)
-        run: docker compose run --rm recorder
+        run: |
+          cd demo
+          ./setup.sh
+          ./run.sh
 
       - name: Pick latest recording
         id: pick

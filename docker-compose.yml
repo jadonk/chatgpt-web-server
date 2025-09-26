@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.app
+      dockerfile: Dockerfile
     environment:
       - PORT=3000
       - DB_URL=sqlite3:/app/ui.db
@@ -14,15 +14,3 @@ services:
       timeout: 2s
       retries: 40
 
-  recorder:
-    build:
-      context: .
-      dockerfile: Dockerfile.recorder
-    working_dir: /work
-    environment:
-      - BASE_URL=http://app:3000
-    depends_on:
-      app:
-        condition: service_healthy
-    volumes:
-      - ./demo/recordings:/work/demo/recordings

@@ -16,4 +16,8 @@ dependencies:
   sqlite3:
     github: crystal-lang/crystal-sqlite3
 
+development_dependencies:
+  playwright:
+    github: naqvis/playwright-cr
+
 license: MIT

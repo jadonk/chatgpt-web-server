@@ -4,7 +4,11 @@
 /.shards/
 *.dwarf
 ui.db
-# Playwright demo
+
+# Playwright
 demo/node_modules/
-demo/recordings/
-assets/palette.png
+demo/test-results/
+demo/playwright-report/
+demo/blob-report/
+demo/playwright/.cache/
+demo/playwright/.auth/
