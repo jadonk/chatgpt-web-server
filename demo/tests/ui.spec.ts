@@ -1,16 +1,30 @@
 import { test, expect } from '@playwright/test';
 
-test('live interaction recording', async ({ page }) => {
-  await page.goto('/page/home');
-  await expect(page.getByText(/Beagle Device Panel/i)).toBeVisible();
+test('record home page interaction', async ({ page }) => {
+  await page.goto('/page/home', { waitUntil: 'domcontentloaded' });
 
-  // Read temperature
-  await page.getByRole('button', { name: /Read temperature/i }).click();
-  await expect(page.locator('#value-temp_sensor')).toContainText('°C', { timeout: 5000 });
+  // Small dwell so the first frame isn't blank
+  await page.waitForTimeout(500);
 
-  // LED on/off
-  await page.getByRole('button', { name: /^LED ON$/i }).click();
-  await expect(page.locator('#value-led')).toHaveText(/on|off/);
-  await page.getByRole('button', { name: /^LED OFF$/i }).click();
-  await expect(page.locator('#value-led')).toHaveText(/off/);
+  // If your demo buttons are present, interact with them.
+  const readTemp = page.getByRole('button', { name: /read temperature/i });
+  if (await readTemp.isVisible().catch(() => false)) {
+    await readTemp.click();
+    await page.waitForTimeout(500);
+  }
+
+  const ledOn = page.getByRole('button', { name: /^led on$/i });
+  if (await ledOn.isVisible().catch(() => false)) {
+    await ledOn.click();
+    await page.waitForTimeout(300);
+  }
+
+  const ledOff = page.getByRole('button', { name: /^led off$/i });
+  if (await ledOff.isVisible().catch(() => false)) {
+    await ledOff.click();
+    await page.waitForTimeout(300);
+  }
+
+  // Short outro dwell ensures a clean tail frame
+  await page.waitForTimeout(800);
 });

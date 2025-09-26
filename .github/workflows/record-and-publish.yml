@@ -10,7 +10,7 @@ on:
       - 'docker-compose.yml'
 
 permissions:
-  contents: write   # needed to commit MP4/GIF into the repo
+  contents: write
 
 jobs:
   record:
@@ -28,9 +28,10 @@ jobs:
             sleep 3
           done
           echo "App did not become healthy" >&2
+          docker compose logs app || true
           exit 1
 
-      - name: Record browser session with Playwright
+      - name: Record with Playwright (saves .webm under demo/recordings/)
         run: docker compose run --rm recorder
 
       - name: Pick latest recording
@@ -42,7 +43,7 @@ jobs:
       - name: Ensure assets dir
         run: mkdir -p assets
 
-      - name: Convert to MP4 (FFmpeg in Docker)
+      - name: Convert to MP4
         run: |
           docker run --rm -v "$PWD:/work" jrottenberg/ffmpeg:6.1-alpine \
             -i "/work/${{ steps.pick.outputs.latest }}" \
@@ -56,7 +57,6 @@ jobs:
             -i "/work/${{ steps.pick.outputs.latest }}" \
             -vf "fps=12,scale=800:-2:flags=bicubic,palettegen" \
             -y "/work/assets/palette.png"
-
           docker run --rm -v "$PWD:/work" jrottenberg/ffmpeg:6.1-alpine \
             -i "/work/${{ steps.pick.outputs.latest }}" -i "/work/assets/palette.png" \
             -lavfi "fps=12,scale=800:-2:flags=bicubic,paletteuse=dither=bayer:bayer_scale=1" \
@@ -68,3 +68,11 @@ jobs:
           commit_message: "chore: update demo recording (MP4+GIF)"
           file_pattern: assets/demo.mp4 assets/demo.gif
 
+      - name: Upload artifact (also handy)
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-recordings
+          path: |
+            demo/recordings/**
+            assets/demo.mp4
+            assets/demo.gif

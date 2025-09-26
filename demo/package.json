@@ -1,11 +1,6 @@
 {
   "name": "chatgpt-web-server-demo",
   "private": true,
-  "devDependencies": {
-    "@playwright/test": "^1.47.0"
-  },
-  "scripts": {
-    "install:browsers": "npx playwright install --with-deps",
-    "record": "playwright test --config=playwright.config.ts"
-  }
+  "devDependencies": { "@playwright/test": "^1.47.0" },
+  "scripts": { "record": "playwright test --config=playwright.config.ts --reporter=line" }
 }
