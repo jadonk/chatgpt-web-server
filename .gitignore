@@ -3,3 +3,8 @@
 /bin/
 /.shards/
 *.dwarf
+ui.db
+# Playwright demo
+demo/node_modules/
+demo/recordings/
+assets/palette.png

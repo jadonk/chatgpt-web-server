@@ -1,7 +1,8 @@
-FROM crystallang/crystal:1.12.2
+FROM crystallang/crystal:1.14.0
 WORKDIR /app
 COPY shard.yml shard.lock* ./
 RUN shards install --skip-postinstall
+RUN apt-get update && apt-get install -y libsqlite3-dev && rm -rf /var/lib/apt/lists/*
 COPY . .
 RUN shards build --release
 EXPOSE 3000
