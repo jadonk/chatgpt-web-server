@@ -15,7 +15,7 @@ You declare **entities** (domain objects) and **widgets** (UI blocks) in SQLite;
 ---
 
 ## Requirements
-- Crystal ≥ 1.8
+- Crystal ≥ 1.14
 - SQLite3 runtime (`libsqlite3`)
 
 ## Project layout

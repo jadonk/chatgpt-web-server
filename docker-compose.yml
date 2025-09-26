@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    environment:
+      - PORT=3000
+      - DB_URL=sqlite3:/app/ui.db
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/page/home"]
+      interval: 3s
+      timeout: 2s
+      retries: 30
+
+  recorder:
+    image: mcr.microsoft.com/playwright:v1.47.0-jammy
+    working_dir: /work
+    # Run everything inside the container: install dev deps, then run tests
+    entrypoint: /bin/bash -lc
+    command: |
+      cd demo
+      npm ci
+      npx playwright test --config=playwright.config.ts --reporter=line
+    environment:
+      - BASE_URL=http://app:3000
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - .:/work
+      - ./demo/recordings:/work/demo/recordings
