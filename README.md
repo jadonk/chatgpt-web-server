@@ -2,6 +2,10 @@
 
 Several of the statements below are false, but the web server does serve up a pretty slick little UI.
 
+<video src="assets/demo.mp4" controls muted playsinline width="800"></video>
+
+![Live demo](assets/demo.gif)
+
 # Semantic UI (Crystal + SQLite + Kemal)
 
 Build web UIs by defining **semantics**, not HTML.
