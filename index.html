@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Crystal Docs 1.16.3">
+<meta name="crystal_docs.project_version" content="main">
+<meta name="crystal_docs.project_name" content="chatgpt-web-server">
+
+
+
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="js/doc.js"></script>
+
+  <meta name="repository-name" content="chatgpt-web-server">
+  <title>chatgpt-web-server main</title>
+  <script type="text/javascript">
+  CrystalDocs.base_path = "";
+  </script>
+</head>
+<body>
+
+<svg class="hidden">
+  <symbol id="octicon-link" viewBox="0 0 16 16">
+    <path fill="currentColor" fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+  </symbol>
+</svg>
+<input type="checkbox" id="sidebar-btn">
+<label for="sidebar-btn" id="sidebar-btn-label">
+  <svg class="open" xmlns="http://www.w3.org/2000/svg" height="2em" width="2em" viewBox="0 0 512 512"><title>Open Sidebar</title><path fill="currentColor" d="M80 96v64h352V96H80zm0 112v64h352v-64H80zm0 112v64h352v-64H80z"></path></svg>
+  <svg class="close" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 512 512"><title>Close Sidebar</title><path fill="currentColor" d="m118.6 73.4-45.2 45.2L210.7 256 73.4 393.4l45.2 45.2L256 301.3l137.4 137.3 45.2-45.2L301.3 256l137.3-137.4-45.2-45.2L256 210.7Z"></path></svg>
+</label>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="search-box">
+      <input type="search" class="search-input" placeholder="Search..." spellcheck="false" aria-label="Search">
+    </div>
+
+    <div class="project-summary">
+      <h1 class="project-name">
+        <a href="index.html">
+          chatgpt-web-server
+        </a>
+      </h1>
+
+      <span class="project-version">
+        main
+      </span>
+    </div>
+  </div>
+
+  <div class="search-results hidden">
+    <ul class="search-list"></ul>
+  </div>
+
+  <div class="types-list">
+    <ul>
+  
+  <li class=" " data-id="chatgpt-web-server/toplevel" data-name="top level namespace">
+      <a href="toplevel.html">Top Level Namespace</a>
+      
+    </li>
+  
+  <li class="parent " data-id="chatgpt-web-server/SemanticUI" data-name="semanticui">
+      <a href="SemanticUI.html">SemanticUI</a>
+      
+        <ul>
+  
+  <li class=" " data-id="chatgpt-web-server/SemanticUI/Engine" data-name="semanticui::engine">
+      <a href="SemanticUI/Engine.html">Engine</a>
+      
+    </li>
+  
+  <li class=" " data-id="chatgpt-web-server/SemanticUI/Entity" data-name="semanticui::entity">
+      <a href="SemanticUI/Entity.html">Entity</a>
+      
+    </li>
+  
+  <li class=" " data-id="chatgpt-web-server/SemanticUI/Render" data-name="semanticui::render">
+      <a href="SemanticUI/Render.html">Render</a>
+      
+    </li>
+  
+  <li class=" " data-id="chatgpt-web-server/SemanticUI/WidgetRow" data-name="semanticui::widgetrow">
+      <a href="SemanticUI/WidgetRow.html">WidgetRow</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+  </div>
+</div>
+
+
+<div class="main-content">
+<h1><a id="chat-gpt-generated-web-server" class="anchor" href="#chat-gpt-generated-web-server">  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>ChatGPT generated web server</h1>
+<p>Several of the statements below are false, but the web server does serve up a pretty slick little UI.</p>
+<p><video src="assets/demo.mp4" controls muted playsinline width="800"></video></p>
+<p><img src="assets/demo.gif" alt="Live demo" /></p>
+<h1><a id="semantic-ui-crystal-sq-lite-kemal" class="anchor" href="#semantic-ui-crystal-sq-lite-kemal">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Semantic UI (Crystal + SQLite + Kemal)</h1>
+<p>Build web UIs by defining <strong>semantics</strong>, not HTML.
+You declare <strong>entities</strong> (domain objects) and <strong>widgets</strong> (UI blocks) in SQLite; the server renders HTML at request time and owns all interactivity.</p>
+<ul>
+<li><strong>No HTML stored in DB</strong> — only semantic data (types, labels, ops)</li>
+<li><strong>Server-side logic</strong> — UI actions are HTTP endpoints you implement</li>
+<li><strong>Zero custom client JS</strong> — uses a tiny <code>htmx</code> script for requests</li>
+<li><strong>Library-first</strong> — <code><a href="SemanticUI/Engine.html">SemanticUI::Engine</a></code> + <code><a href="SemanticUI/Render.html">SemanticUI::Render</a></code></li>
+</ul>
+<hr />
+<h2><a id="requirements" class="anchor" href="#requirements">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Requirements</h2>
+<ul>
+<li>Crystal ≥ 1.14</li>
+<li>SQLite3 runtime (<code>libsqlite3</code>)</li>
+</ul>
+<h2><a id="project-layout" class="anchor" href="#project-layout">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Project layout</h2>
+<pre><code class="language-crystal">.
+├── shards.yml                 <span class="c"># deps: kemal, sqlite3</span>
+├── src<span class="o">/</span>
+│   ├── semantic_ui.cr         <span class="c"># module: Engine + Render + data structs</span>
+│   └── chatgpt<span class="o">-</span>web<span class="o">-</span>server.cr  <span class="c"># thin Kemal runner</span>
+└── spec<span class="o">/</span>
+    └── semantic_ui_spec.cr    <span class="c"># tests</span></code></pre>
+<hr />
+<h2><a id="quick-start" class="anchor" href="#quick-start">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Quick start</h2>
+<pre><code class="language-bash">rm -f ui.db &amp;&amp; shards run
+# open http://localhost:3000</code></pre>
+<p>First run creates <code>ui.db</code> and seeds a demo page (<code>/page/home</code>).</p>
+<h3><a id="run-the-tests" class="anchor" href="#run-the-tests">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Run the tests</h3>
+<pre><code class="language-bash">crystal spec</code></pre>
+<h3><a id="configuration" class="anchor" href="#configuration">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Configuration</h3>
+<ul>
+<li><code><a href="toplevel.html#DB_URL">DB_URL</a></code> — database URL (default: <code>sqlite3:./ui.db</code>)</li>
+<li><code><a href="toplevel.html#PORT">PORT</a></code>   — HTTP port (default: <code>3000</code>)</li>
+</ul>
+<hr />
+<h2><a id="concepts" class="anchor" href="#concepts">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Concepts</h2>
+<h3><a id="entities-the-domain" class="anchor" href="#entities-the-domain">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Entities (the domain)</h3>
+<p>Stored in table <code>entities</code> with a stable <code>key</code>, a <code>kind</code>, and a typed <code>schema</code> (JSON).</p>
+<p>Examples:</p>
+<pre><code class="language-json">{&quot;type&quot;:&quot;number&quot;,&quot;unit&quot;:&quot;°C&quot;,&quot;format&quot;:&quot;1dp&quot;}
+{&quot;type&quot;:&quot;boolean&quot;}
+{&quot;type&quot;:&quot;string&quot;,&quot;max&quot;:200}</code></pre>
+<p>Optional: <code>read_action</code>, <code>write_action</code> (symbolic names your server handles).</p>
+<h3><a id="layouts-pages" class="anchor" href="#layouts-pages">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Layouts (pages)</h3>
+<p>Stored in <code>layouts</code> with <code>slug</code>, <code>title</code>, and <code>hints</code> (e.g., <code>{ &quot;sidebar_width&quot;: &quot;300px&quot;, &quot;max_width&quot;: &quot;1100px&quot; }</code>).</p>
+<h3><a id="widgets-views" class="anchor" href="#widgets-views">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Widgets (views)</h3>
+<p>Stored in <code>widgets</code>. Each row declares <strong>what</strong> to show and <strong>where</strong>:</p>
+<ul>
+<li><code>region</code>: <code>chrome | header | main | sidebar | footer</code></li>
+<li><code>widget_kind</code>: <code>heading | value | toggle | button | form | divider</code></li>
+<li><code>entity_key</code>: optional reference to an entity</li>
+<li><code>label</code>: human text</li>
+<li><code>hints</code>: semantic/presentation hints (JSON), e.g.:
+<ul>
+<li><code>{&quot;level&quot;: 2}</code> for headings</li>
+<li><code>{&quot;style&quot;: &quot;stat&quot;}</code> for compact stat blocks</li>
+<li><code>{&quot;op&quot;: &quot;read&quot; | &quot;toggle&quot; | &quot;write&quot;, &quot;value&quot;: true}</code> for buttons</li>
+<li><code>{&quot;fields&quot;: [{&quot;name&quot;:&quot;text&quot;,&quot;placeholder&quot;:&quot;Type a note…&quot;}]}</code> for forms</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>All HTML is produced by server templates. The DB never contains raw HTML.</p>
+</blockquote>
+<hr />
+<h2><a id="http-endpoints" class="anchor" href="#http-endpoints">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>HTTP endpoints</h2>
+<ul>
+<li><strong>Render page</strong>: <code>GET /page/:slug</code> → full HTML</li>
+<li><strong>Read (typed)</strong>: <code>GET /read/:key</code> → text, e.g., <code>23.4 °C</code>, <code>on</code>, <code>off</code></li>
+<li><strong>Write (typed)</strong>: <code>POST /write/:key</code>
+<ul>
+<li>body fields: <code>value=true|false|1|0</code>, <code>toggle=true</code>, or domain-specific (e.g., <code>text</code>)</li>
+</ul>
+</li>
+</ul>
+<p>The UI triggers these via <code>hx-*</code> attributes—no custom JS is authored.</p>
+<hr />
+<h2><a id="using-the-module" class="anchor" href="#using-the-module">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Using the module</h2>
+<pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;./src/semantic_ui&quot;</span>
+
+engine <span class="o">=</span> <span class="t">SemanticUI</span><span class="t">::</span><span class="t">Engine</span>.new(<span class="t">ENV</span>[<span class="s">&quot;DB_URL&quot;</span>]? <span class="o">||</span> <span class="s">&quot;sqlite3:./ui.db&quot;</span>)
+engine.seed_if_empty
+
+html <span class="o">=</span> <span class="t">SemanticUI</span><span class="t">::</span><span class="t">Render</span>.render_page(engine, <span class="s">&quot;home&quot;</span>)
+puts html</code></pre>
+<h3><a id="kemal-integration-simplified-from-app.cr" class="anchor" href="#kemal-integration-simplified-from-app.cr">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Kemal integration (simplified from <code>app.cr</code>)</h3>
+<pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;kemal&quot;</span>
+<span class="k">require</span> <span class="s">&quot;./src/semantic_ui&quot;</span>
+
+engine <span class="o">=</span> <span class="t">SemanticUI</span><span class="t">::</span><span class="t">Engine</span>.new
+engine.seed_if_empty
+
+get <span class="s">&quot;/page/:slug&quot;</span> { <span class="o">|</span>env<span class="o">|</span> env.response.print <span class="t">SemanticUI</span><span class="t">::</span><span class="t">Render</span>.render_page(engine, env.params.url[<span class="s">&quot;slug&quot;</span>]) }
+get <span class="s">&quot;/read/:key&quot;</span>  { <span class="o">|</span>env<span class="o">|</span> env.response.print engine.read_text(env.params.url[<span class="s">&quot;key&quot;</span>]) }
+post <span class="s">&quot;/write/:key&quot;</span> <span class="k">do</span> <span class="o">|</span>env<span class="o">|</span>
+  params <span class="o">=</span> <span class="t">Hash</span>(<span class="t">String</span>, <span class="t">String</span>).new
+  env.params.body.each { <span class="o">|</span>k, v<span class="o">|</span> params[k] <span class="o">=</span> v }
+  env.response.print engine.write_apply(env.params.url[<span class="s">&quot;key&quot;</span>], params)
+<span class="k">end</span>
+<span class="t">Kemal</span>.run</code></pre>
+<hr />
+<h2><a id="seeded-demo" class="anchor" href="#seeded-demo">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Seeded demo</h2>
+<ul>
+<li><strong>Entities:</strong> <code>temp_sensor</code> (number °C), <code>led</code> (boolean), <code>note</code> (string)</li>
+<li><strong>Page:</strong> <code>/page/home</code></li>
+<li><strong>Widgets:</strong> toolbar buttons (refresh temp, toggle LED), stat blocks, simple form</li>
+</ul>
+<p>Click “Read temperature” to update the Temperature stat. Use LED buttons to set/toggle state. The Note form posts text to the server.</p>
+<hr />
+<h2><a id="customize" class="anchor" href="#customize">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Customize</h2>
+<h3><a id="add-an-entity" class="anchor" href="#add-an-entity">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Add an entity</h3>
+<pre><code class="language-sql">INSERT INTO entities (key, kind, schema, read_action, write_action)
+VALUES (
+  'fan', 'actuator',
+  '{&quot;type&quot;:&quot;boolean&quot;}',
+  'fan_state', 'set_fan'
+);</code></pre>
+<p>Then implement <code>fan_state</code>/<code>set_fan</code> in <code>Engine#read_text</code> / <code>Engine#write_apply</code>.</p>
+<h3><a id="add-a-widget" class="anchor" href="#add-a-widget">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Add a widget</h3>
+<pre><code class="language-sql">INSERT INTO widgets (layout_id, region, ord, widget_kind, entity_key, label, hints)
+VALUES (
+  1, 'main', 10, 'button', 'fan', 'Fan ON',
+  '{&quot;op&quot;:&quot;write&quot;,&quot;value&quot;:true}'
+);</code></pre>
+<h3><a id="auto-refresh-a-value-optional" class="anchor" href="#auto-refresh-a-value-optional">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Auto-refresh a value (optional)</h3>
+<p>Add <code>{&quot;trigger&quot;:&quot;load, every 10s&quot;}</code> to a value widget’s <code>hints</code> and include an autoload div in the value renderer (see comments in code).</p>
+<hr />
+<h2><a id="troubleshooting" class="anchor" href="#troubleshooting">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Troubleshooting</h2>
+<ul>
+<li><strong><code>no such table: layouts</code></strong> — Remove <code>ui.db</code> (from older versions) and rerun; tables are created on start.</li>
+<li><strong>JSON parse errors in <code>hints</code></strong> — Ensure valid JSON (double quotes, no symbols/single quotes).</li>
+<li><strong>Nothing updates</strong> — Use DevTools → Network; confirm <code>/read/:key</code> or <code>/write/:key</code> returns <code>200</code>.</li>
+</ul>
+<hr />
+<h2><a id="production" class="anchor" href="#production">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Production</h2>
+<pre><code class="language-bash">shards build --release
+./chatgpt-web-server</code></pre>
+<p>Run behind a reverse proxy (nginx/Caddy). Add auth/CSRF if exposing publicly (this demo has none).</p>
+<hr />
+<h2><a id="license" class="anchor" href="#license">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>License</h2>
+<p>MIT — see <code>LICENSE</code>.</p>
+<h2><a id="acknowledgements" class="anchor" href="#acknowledgements">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Acknowledgements</h2>
+<ul>
+<li><a href="https://crystal-lang.org/">Crystal</a>, <a href="https://kemalcr.com/">Kemal</a>, <a href="https://sqlite.org/">SQLite</a>, and the tiny-but-mighty <a href="https://htmx.org/">htmx</a>.</li>
+</ul>
+</div>
+</body>
+</html>

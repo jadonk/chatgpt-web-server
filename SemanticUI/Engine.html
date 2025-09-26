@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Crystal Docs 1.16.3">
+<meta name="crystal_docs.project_version" content="main">
+<meta name="crystal_docs.project_name" content="chatgpt-web-server">
+
+
+
+<link href="../css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="../js/doc.js"></script>
+
+  <meta name="repository-name" content="chatgpt-web-server">
+  <title>SemanticUI::Engine - chatgpt-web-server main</title>
+  <script type="text/javascript">
+    CrystalDocs.base_path = "../";
+  </script>
+</head>
+<body>
+
+<svg class="hidden">
+  <symbol id="octicon-link" viewBox="0 0 16 16">
+    <path fill="currentColor" fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+  </symbol>
+</svg>
+<input type="checkbox" id="sidebar-btn">
+<label for="sidebar-btn" id="sidebar-btn-label">
+  <svg class="open" xmlns="http://www.w3.org/2000/svg" height="2em" width="2em" viewBox="0 0 512 512"><title>Open Sidebar</title><path fill="currentColor" d="M80 96v64h352V96H80zm0 112v64h352v-64H80zm0 112v64h352v-64H80z"></path></svg>
+  <svg class="close" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 512 512"><title>Close Sidebar</title><path fill="currentColor" d="m118.6 73.4-45.2 45.2L210.7 256 73.4 393.4l45.2 45.2L256 301.3l137.4 137.3 45.2-45.2L301.3 256l137.3-137.4-45.2-45.2L256 210.7Z"></path></svg>
+</label>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="search-box">
+      <input type="search" class="search-input" placeholder="Search..." spellcheck="false" aria-label="Search">
+    </div>
+
+    <div class="project-summary">
+      <h1 class="project-name">
+        <a href="../index.html">
+          chatgpt-web-server
+        </a>
+      </h1>
+
+      <span class="project-version">
+        main
+      </span>
+    </div>
+  </div>
+
+  <div class="search-results hidden">
+    <ul class="search-list"></ul>
+  </div>
+
+  <div class="types-list">
+    <ul>
+  
+  <li class=" " data-id="chatgpt-web-server/toplevel" data-name="top level namespace">
+      <a href="../toplevel.html">Top Level Namespace</a>
+      
+    </li>
+  
+  <li class="parent open current" data-id="chatgpt-web-server/SemanticUI" data-name="semanticui">
+      <a href="../SemanticUI.html">SemanticUI</a>
+      
+        <ul>
+  
+  <li class=" current" data-id="chatgpt-web-server/SemanticUI/Engine" data-name="semanticui::engine">
+      <a href="../SemanticUI/Engine.html">Engine</a>
+      
+    </li>
+  
+  <li class=" " data-id="chatgpt-web-server/SemanticUI/Entity" data-name="semanticui::entity">
+      <a href="../SemanticUI/Entity.html">Entity</a>
+      
+    </li>
+  
+  <li class=" " data-id="chatgpt-web-server/SemanticUI/Render" data-name="semanticui::render">
+      <a href="../SemanticUI/Render.html">Render</a>
+      
+    </li>
+  
+  <li class=" " data-id="chatgpt-web-server/SemanticUI/WidgetRow" data-name="semanticui::widgetrow">
+      <a href="../SemanticUI/WidgetRow.html">WidgetRow</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+  </div>
+</div>
+
+
+<div class="main-content">
+<h1 class="type-name">
+
+  <span class="kind">
+    class
+  </span> SemanticUI::<wbr>Engine
+
+</h1>
+
+
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../SemanticUI/Engine.html">SemanticUI::Engine</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+
+
+
+
+  <h2>
+    <a id="overview" class="anchor" href="#overview">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Overview
+  </h2>
+
+  <p>------------------------------- Engine -------------------------------------</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2>
+    <a id="defined-in" class="anchor" href="#defined-in">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Defined in:
+  </h2>
+  
+    
+      <a href="https://github.com/jadonk/chatgpt-web-server/blob/c8d91b71fc5f12a0a6a653f4cd56786f3c745bc0/src/semantic_ui.cr#L24" target="_blank">
+        semantic_ui.cr
+      </a>
+    
+    <br/>
+  
+
+
+
+  
+    <h2>
+      <a id="constant-summary" class="anchor" href="#constant-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+      Constant Summary
+    </h2>
+  
+  <dl>
+    
+      <dt class="entry-const" id="SCHEMA_SQL">
+        <strong>SCHEMA_SQL</strong> = <code><span class="s">&quot;CREATE TABLE IF NOT EXISTS entities (\n  id INTEGER PRIMARY KEY,\n  key TEXT UNIQUE NOT NULL,\n  kind TEXT NOT NULL,\n  schema TEXT NOT NULL DEFAULT &#39;{}&#39;,\n  read_action  TEXT,\n  write_action TEXT\n);\n\nCREATE TABLE IF NOT EXISTS layouts (\n  id INTEGER PRIMARY KEY,\n  slug TEXT UNIQUE NOT NULL,\n  title TEXT NOT NULL,\n  hints TEXT NOT NULL DEFAULT &#39;{}&#39;\n);\n\nCREATE TABLE IF NOT EXISTS widgets (\n  id INTEGER PRIMARY KEY,\n  layout_id INTEGER NOT NULL,\n  region TEXT NOT NULL,\n  ord INTEGER NOT NULL DEFAULT 0,\n  widget_kind TEXT NOT NULL,\n  entity_key TEXT,\n  label TEXT,\n  hints TEXT NOT NULL DEFAULT &#39;{}&#39;,\n  FOREIGN KEY(layout_id) REFERENCES layouts(id)\n);&quot;</span></code>
+      </dt>
+      
+    
+  </dl>
+
+
+
+  
+  <h2>
+    <a id="constructors" class="anchor" href="#constructors">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructors
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new%28db_url%3AString%3D%22sqlite3%3A./ui.db%22%29-class-method" class="signature"><strong>.new</strong>(db_url : String = <span class="s">&quot;sqlite3:./ui.db&quot;</span>)</a>
+        
+      </li>
+    
+  </ul>
+
+
+  
+
+  
+
+  
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#create_schema-instance-method" class="signature"><strong>#create_schema</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#fetch_layout%28slug%3AString%29%3ATuple%28Int64%2CString%2CString%29%7CNil-instance-method" class="signature"><strong>#fetch_layout</strong>(slug : String) : Tuple(Int64, String, String) | Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#fetch_widgets%28layout_id%3AInt64%29%3AArray%28WidgetRow%29-instance-method" class="signature"><strong>#fetch_widgets</strong>(layout_id : Int64) : Array(WidgetRow)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#get_entity%28key%3AString%29%3AEntity%7CNil-instance-method" class="signature"><strong>#get_entity</strong>(key : String) : Entity | Nil</a>
+        
+          <div class="summary"><p>--------------------------- Query helpers --------------------------------</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#read_text%28key%3AString%29%3AString-instance-method" class="signature"><strong>#read_text</strong>(key : String) : String</a>
+        
+          <div class="summary"><p>----------------------------- Semantics ----------------------------------</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#seed_if_empty-instance-method" class="signature"><strong>#seed_if_empty</strong></a>
+        
+          <div class="summary"><p>----------- Seeding (idempotent) ----------------------------------------</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#write_apply%28key%3AString%2Cparams%3AHash%28String%2CString%29%29%3AString-instance-method" class="signature"><strong>#write_apply</strong>(key : String, params : Hash(String, String)) : String</a>
+        
+      </li>
+    
+  </ul>
+
+
+
+  <div class="methods-inherited">
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+  </div>
+
+  
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="new(db_url:String=&quot;sqlite3:./ui.db&quot;)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(db_url : String = <span class="s">&quot;sqlite3:./ui.db&quot;</span>)
+
+        <a class="method-permalink" href="#new%28db_url%3AString%3D%22sqlite3%3A./ui.db%22%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/c8d91b71fc5f12a0a6a653f4cd56786f3c745bc0/src/semantic_ui.cr#L57" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
+
+  
+
+  
+
+  
+  <h2>
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="create_schema-instance-method">
+      <div class="signature">
+        
+        def <strong>create_schema</strong>
+
+        <a class="method-permalink" href="#create_schema-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/c8d91b71fc5f12a0a6a653f4cd56786f3c745bc0/src/semantic_ui.cr#L63" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="fetch_layout(slug:String):Tuple(Int64,String,String)|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>fetch_layout</strong>(slug : String) : Tuple(Int64, String, String) | Nil
+
+        <a class="method-permalink" href="#fetch_layout%28slug%3AString%29%3ATuple%28Int64%2CString%2CString%29%7CNil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/c8d91b71fc5f12a0a6a653f4cd56786f3c745bc0/src/semantic_ui.cr#L136" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="fetch_widgets(layout_id:Int64):Array(WidgetRow)-instance-method">
+      <div class="signature">
+        
+        def <strong>fetch_widgets</strong>(layout_id : Int64) : Array(<a href="../SemanticUI/WidgetRow.html">WidgetRow</a>)
+
+        <a class="method-permalink" href="#fetch_widgets%28layout_id%3AInt64%29%3AArray%28WidgetRow%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/c8d91b71fc5f12a0a6a653f4cd56786f3c745bc0/src/semantic_ui.cr#L140" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="get_entity(key:String):Entity|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>get_entity</strong>(key : String) : <a href="../SemanticUI/Entity.html">Entity</a> | Nil
+
+        <a class="method-permalink" href="#get_entity%28key%3AString%29%3AEntity%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>--------------------------- Query helpers --------------------------------</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/c8d91b71fc5f12a0a6a653f4cd56786f3c745bc0/src/semantic_ui.cr#L129" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="read_text(key:String):String-instance-method">
+      <div class="signature">
+        
+        def <strong>read_text</strong>(key : String) : String
+
+        <a class="method-permalink" href="#read_text%28key%3AString%29%3AString-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>----------------------------- Semantics ----------------------------------</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/c8d91b71fc5f12a0a6a653f4cd56786f3c745bc0/src/semantic_ui.cr#L157" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="seed_if_empty-instance-method">
+      <div class="signature">
+        
+        def <strong>seed_if_empty</strong>
+
+        <a class="method-permalink" href="#seed_if_empty-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>----------- Seeding (idempotent) ----------------------------------------</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/c8d91b71fc5f12a0a6a653f4cd56786f3c745bc0/src/semantic_ui.cr#L72" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="write_apply(key:String,params:Hash(String,String)):String-instance-method">
+      <div class="signature">
+        
+        def <strong>write_apply</strong>(key : String, params : Hash(String, String)) : String
+
+        <a class="method-permalink" href="#write_apply%28key%3AString%2Cparams%3AHash%28String%2CString%29%29%3AString-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/c8d91b71fc5f12a0a6a653f4cd56786f3c745bc0/src/semantic_ui.cr#L173" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
+
+
+</div>
+
+</body>
+</html>
