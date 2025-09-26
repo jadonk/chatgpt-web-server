@@ -12,3 +12,4 @@ demo/playwright-report/
 demo/blob-report/
 demo/playwright/.cache/
 demo/playwright/.auth/
+demo/recordings
