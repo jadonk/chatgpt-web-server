@@ -15,19 +15,14 @@ services:
       retries: 40
 
   recorder:
-    image: mcr.microsoft.com/playwright:v1.47.0-jammy
+    build:
+      context: .
+      dockerfile: Dockerfile.recorder
     working_dir: /work
-    entrypoint: /bin/bash -lc
-    command: |
-      set -euxo pipefail
-      cd demo
-      npm ci
-      npx playwright test --config=playwright.config.ts --reporter=line
     environment:
       - BASE_URL=http://app:3000
     depends_on:
       app:
         condition: service_healthy
     volumes:
-      - .:/work
       - ./demo/recordings:/work/demo/recordings
