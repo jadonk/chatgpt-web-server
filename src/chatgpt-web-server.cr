@@ -1,114 +1,107 @@
 # ------------------------------- app.cr --------------------------------------
-# Save as: app.cr
-
 require "kemal"
 require "db"
 require "sqlite3"
 require "json"
 
-# ------------------------------ Config/State ---------------------------------
-APP_TITLE  = "Device Console"
-DB_URL     = "sqlite3:./ui.db"
+APP_TITLE = "Device Console"
+DB_URL    = "sqlite3:./ui.db"
 
-LED_ON     = Atomic(Bool).new(false)
+# Simulated device state
+LED_ON    = Atomic(Bool).new(false)
 
-# ------------------------------- DB bootstrap --------------------------------
+# ------------------------------- Schema --------------------------------------
+# No HTML in DB. Two layers:
+# 1) Model layer: semantic **entities** (measurement/actuator/note/etc.) with typed schema
+# 2) View layer: **layouts** and **widgets** that reference entities by key and
+#    give layout/presentation hints (still semantic: labels, roles, ops)
+
 SCHEMA_SQL = <<-SQL
-CREATE TABLE IF NOT EXISTS pages (
+CREATE TABLE IF NOT EXISTS entities (
+  id INTEGER PRIMARY KEY,
+  key TEXT UNIQUE NOT NULL,           -- stable key like 'temp_sensor', 'led'
+  kind TEXT NOT NULL,                 -- 'measurement' | 'actuator' | 'note'
+  schema TEXT NOT NULL DEFAULT '{}',  -- JSON: {type: 'number'|'boolean'|'string', unit?, format?}
+  read_action  TEXT,                  -- symbolic handler name for reads
+  write_action TEXT                   -- symbolic handler name for writes
+);
+
+CREATE TABLE IF NOT EXISTS layouts (
   id INTEGER PRIMARY KEY,
   slug TEXT UNIQUE NOT NULL,
   title TEXT NOT NULL,
-  layout TEXT NOT NULL DEFAULT 'two_col',
-  hints TEXT NOT NULL DEFAULT '{}'
+  hints TEXT NOT NULL DEFAULT '{}'    -- JSON: {max_width, sidebar_width, ...}
 );
 
-CREATE TABLE IF NOT EXISTS blocks (
+CREATE TABLE IF NOT EXISTS widgets (
   id INTEGER PRIMARY KEY,
-  page_id INTEGER NOT NULL,
-  region TEXT NOT NULL,         -- 'chrome' | 'header' | 'main' | 'sidebar' | 'footer'
+  layout_id INTEGER NOT NULL,
+  region TEXT NOT NULL,               -- 'chrome'|'header'|'main'|'sidebar'|'footer'
   ord INTEGER NOT NULL DEFAULT 0,
-  kind TEXT NOT NULL,           -- 'text' | 'stat' | 'button' | 'form' | 'table' | 'divider'
-  spec TEXT NOT NULL DEFAULT '{}',
-  FOREIGN KEY(page_id) REFERENCES pages(id)
+  widget_kind TEXT NOT NULL,          -- 'heading'|'value'|'toggle'|'button'|'form'|'divider'
+  entity_key TEXT,                    -- references entities.key (nullable for heading/divider)
+  label TEXT,                         -- human label (plain text only)
+  hints TEXT NOT NULL DEFAULT '{}',   -- JSON: semantic/presentation hints (e.g., {level:1}, {op:'read'})
+  FOREIGN KEY(layout_id) REFERENCES layouts(id)
 );
 SQL
 
 DB_CONN = DB.open DB_URL
-
-# Ensure schema and seed demo content on first run
 DB_CONN.exec SCHEMA_SQL
-count = DB_CONN.query_one("SELECT COUNT(*) FROM pages", as: Int64)
+
+# ------------------------------- Seeding -------------------------------------
+count = DB_CONN.query_one("SELECT COUNT(*) FROM layouts", as: Int64)
 if count == 0
-  DB_CONN.exec "INSERT INTO pages (slug, title, layout, hints) VALUES (?,?,?,?)",
-    "home", "Beagle Device Panel", "two_col", {
-      "sidebar_width" => "300px",
-      "max_width"     => "1100px"
-    }.to_json
+  # Entities (semantics)
+  DB_CONN.exec "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
+    "temp_sensor", "measurement", {"type" => "number", "unit" => "°C", "format" => "1dp"}.to_json, "temp", nil
+  DB_CONN.exec "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
+    "led", "actuator", {"type" => "boolean"}.to_json, "led_state", "set_led"
+  DB_CONN.exec "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
+    "note", "note", {"type" => "string", "max" => 200}.to_json, nil, "note"
 
-  page_id = DB_CONN.query_one("SELECT last_insert_rowid()", as: Int64)
+  # Layout
+  DB_CONN.exec "INSERT INTO layouts (slug, title, hints) VALUES (?,?,?)",
+    "home", "Beagle Device Panel", {"sidebar_width"=>"300px","max_width"=>"1100px"}.to_json
+  layout_id = DB_CONN.query_one("SELECT last_insert_rowid()", as: Int64)
 
-  insert_block = DB_CONN.build_prepared_statement("INSERT INTO blocks (page_id, region, ord, kind, spec) VALUES (?,?,?,?,?)")
+  add = ->(region : String, ord : Int32, kind : String, entity_key : String?, label : String?, hints : Hash(String, JSON::Any) = {} of String => JSON::Any) do
+    DB_CONN.exec "INSERT INTO widgets (layout_id, region, ord, widget_kind, entity_key, label, hints) VALUES (?,?,?,?,?,?,?)",
+      layout_id, region, ord, kind, entity_key, label, hints.to_json
+  end
 
-  # CHROME
-  insert_block.exec page_id, "chrome", 0, "text",    {"html" => "<strong>⚙️ Beagle Panel</strong> — server‑driven UI demo"}.to_json
-  insert_block.exec page_id, "chrome", 1, "button",  {
-    "label" => "↻ Refresh temp", "method" => "GET", "action" => "temp",
-    "target" => "#tempVal", "swap" => "text"
-  }.to_json
-  insert_block.exec page_id, "chrome", 2, "button",  {
-    "label" => "Toggle LED", "method" => "POST", "action" => "toggle_led",
-    "target" => "#ledState", "swap" => "text"
-  }.to_json
+  # Chrome (toolbar; semantic buttons)
+  add.call "chrome", 0, "button", "temp_sensor", "↻ Refresh temp", {"op"=>"read"}.as_h
+  add.call "chrome", 1, "button", "led",          "Toggle LED",   {"op"=>"toggle"}.as_h
 
-  # HEADER
-  insert_block.exec page_id, "header", 0, "text", {"role" => "h1", "text" => "Beagle Device Panel", "style" => {"size" => "2xl", "weight" => "600"}}.to_json
-  insert_block.exec page_id, "header", 1, "text", {"text" => "Everything here is defined in SQLite as semantic blocks + layout hints."}.to_json
+  # Header
+  add.call "header", 0, "heading", nil, "Beagle Device Panel", {"level"=>1}.as_h
+  add.call "header", 1, "heading", nil, "Server‑driven from semantics (no HTML in DB)", {"level"=>3}.as_h
 
-  # SIDEBAR
-  insert_block.exec page_id, "sidebar", 0, "stat", {"label" => "Temperature", "value_id" => "tempVal", "initial" => "-- °C", "icon" => "🌡️"}.to_json
-  insert_block.exec page_id, "sidebar", 1, "stat", {"label" => "LED",         "value_id" => "ledState", "initial" => "off",     "icon" => "💡"}.to_json
-  insert_block.exec page_id, "sidebar", 2, "divider", {} of String => JSON::Any
-  insert_block.exec page_id, "sidebar", 3, "form", {
-    "title" => "Send Note",
-    "fields" => [{"name" => "text", "placeholder" => "Type a note…"}],
-    "method" => "POST", "action" => "note", "after" => "Note sent!"
-  }.to_json
+  # Sidebar values
+  add.call "sidebar", 0, "value",  "temp_sensor", "Temperature", {"style"=>"stat"}.as_h
+  add.call "sidebar", 1, "value",  "led",         "LED",         {"style"=>"stat"}.as_h
+  add.call "sidebar", 2, "divider", nil, nil, {} of String => JSON::Any
+  add.call "sidebar", 3, "form",   "note",        "Send Note",   {"fields"=>[{"name"=>"text","placeholder"=>"Type a note…"}].to_json}.as_h
 
-  # MAIN
-  insert_block.exec page_id, "main", 0, "text",   {"role" => "h2", "text" => "Live Controls", "style" => {"size" => "xl", "weight" => "600"}}.to_json
-  insert_block.exec page_id, "main", 1, "button", {"label" => "Read temperature", "method" => "GET",  "action" => "temp",           "target" => "#tempVal", "swap" => "text", "hint" => {"block" => "inline"}}.to_json
-  insert_block.exec page_id, "main", 2, "button", {"label" => "LED ON",          "method" => "POST", "action" => "set_led",        "target" => "#ledState", "swap" => "text", "hint" => {"block" => "inline"}}.to_json
-  insert_block.exec page_id, "main", 3, "button", {"label" => "LED OFF",         "method" => "POST", "action" => "clear_led",      "target" => "#ledState", "swap" => "text", "hint" => {"block" => "inline"}}.to_json
-  insert_block.exec page_id, "main", 4, "text",   {"text" => "Use the buttons above. The values in the sidebar update without reloading the page."}.to_json
-  insert_block.exec page_id, "main", 5, "divider", {} of String => JSON::Any
-  insert_block.exec page_id, "main", 6, "text",   {"role" => "h2", "text" => "Recent Readings", "style" => {"size" => "xl", "weight" => "600"}}.to_json
-  insert_block.exec page_id, "main", 7, "table",  {
-    "id" => "readings",
-    "columns" => ["When", "Reading"],
-    "rows" => [["—", "No data yet"]],
-    "append_from_action" => "append_reading"
-  }.to_json
-
-  insert_block.close
+  # Main controls
+  add.call "main", 0, "heading", nil, "Live Controls", {"level"=>2}.as_h
+  add.call "main", 1, "button",  "temp_sensor", "Read temperature", {"op"=>"read"}.as_h
+  add.call "main", 2, "button",  "led",          "LED ON",          {"op"=>"write","value"=>true}.as_h
+  add.call "main", 3, "button",  "led",          "LED OFF",         {"op"=>"write","value"=>false}.as_h
 end
 
 # ------------------------------- Rendering -----------------------------------
-struct BlockRow
-  getter region, kind, ord, spec_json
-  def initialize(@region : String, @kind : String, @ord : Int32, @spec_json : String); end
+struct Widget
+  getter region, ord, kind, entity_key, label, hints
+  def initialize(@region : String, @ord : Int32, @kind : String, @entity_key : String?, @label : String?, @hints : String)
+  end
 end
 
 HTMX = %(<script src="https://unpkg.com/htmx.org@1.9.12"></script>)
 
 def html_escape(s : String) : String
-  s.gsub("&", "&amp;").gsub("<", "&lt;").gsub(">", "&gt;")
-end
-
-def cls_from_hints(spec : JSON::Any) : String
-  if (hint = spec["hint"]?).try &.as_h?
-    return "inline" if hint["block"]?.try &.as_s? == "inline"
-  end
-  ""
+  s.gsub("&","&amp;").gsub("<","&lt;").gsub(">","&gt;")
 end
 
 CSS_TEMPLATE = <<-CSS
@@ -124,6 +117,7 @@ body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-se
 .card{ background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
 .h1{ font-size: 28px; font-weight: 700; margin:0 0 6px 0; }
 .h2{ font-size: 20px; font-weight: 600; margin:0 0 6px 0; }
+.h3{ font-size: 16px; font-weight: 600; margin:0 0 6px 0; color:#374151 }
 .p{ margin: 6px 0; color: #111827; }
 .muted{ color: var(--muted); }
 .btn{ display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius: 12px; border:1px solid var(--border); background:#fff; cursor:pointer; }
@@ -132,11 +126,8 @@ body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-se
 .stat{ display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border:1px solid var(--border); border-radius:12px; }
 .stat .label{ color: var(--muted); }
 .input{ padding:10px 12px; border:1px solid var(--border); border-radius: 12px; min-width: 0; }
-.table{ width:100%; border-collapse: collapse; }
-.table th,.table td{ border:1px solid var(--border); padding:8px 10px; text-align:left; }
 .divider{ height:1px; background: var(--border); margin:10px 0; }
 .small{ font-size:12px; color:var(--muted); }
-.inline{ display:inline-flex }
 CSS
 
 BASE_TEMPLATE = <<-HTML
@@ -155,7 +146,7 @@ BASE_TEMPLATE = <<-HTML
         <div class="toolbar">
           %CHROME%
           <span class="spacer"></span>
-          <span class="small">Server‑driven UI</span>
+          <span class="small">Server‑driven (semantic)</span>
         </div>
       </div>
     </div>
@@ -179,199 +170,665 @@ BASE_TEMPLATE = <<-HTML
 </html>
 HTML
 
-# Render a single block from its JSON spec
-def render_block(kind : String, spec : JSON::Any) : String
-  case kind
-  when "text"
-    role = spec["role"]?.try &.as_s? || "p"
-    if html = spec["html"]?.try &.as_s?
-      return html
+# --------- Model helpers ------------------------------------------------------
+record Entity, key : String, kind : String, schema_json : String, read_action : String?, write_action : String?
+
+def get_entity(key : String) : Entity?
+  DB_CONN.query_one?("SELECT key, kind, schema, read_action, write_action FROM entities WHERE key = ?", key, as: {String, String, String, String?, String?})
+    .try { |t| Entity.new(*t) }
+end
+
+# --------- Renderer -----------------------------------------------------------
+
+def target_id_for(entity_key : String) : String
+  "value-#{entity_key}"
+end
+
+
+def render_widget(w : Widget) : String
+  hints = JSON.parse(w.hints)
+  case w.kind
+  when "heading"
+    lvl = hints["level"]?.try &.as_i? || 2
+    cls = case lvl
+      when 1 then "h1"
+      when 2 then "h2"
+      else         "h3"
     end
-    text = spec["text"]?.try &.as_s? || ""
-    case role
-    when "h1" then return %(<div class='h1'>#{html_escape text}</div>)
-    when "h2" then return %(<div class='h2'>#{html_escape text}</div>)
-    else            return %(<p class='p'>#{html_escape text}</p>)
-    end
+    label = html_escape(w.label || "")
+    return %(<div class='#{cls}'>#{label}</div>)
 
   when "divider"
-    return "<div class='divider'></div>"
+    return %(<div class='divider'></div>)
 
-  when "stat"
-    label    = html_escape(spec["label"]?.try &.as_s? || "Stat")
-    value_id = spec["value_id"]?.try &.as_s? || ""
-    initial  = html_escape(spec["initial"]?.try &.as_s? || "—")
-    icon     = spec["icon"]?.try &.as_s? || ""
-    left  = %(<span>#{icon} <span class='label'>#{label}</span></span>)
-    right = %(<strong id='#{html_escape value_id}'>#{initial}</strong>)
-    return %(<div class='stat'>#{left}#{right}</div>)
+  when "value"
+    return render_value_widget(w)
+
+  when "toggle"
+    return render_toggle_widget(w)
 
   when "button"
-    label  = html_escape(spec["label"]?.try &.as_s? || "Action")
-    method = (spec["method"]?.try &.as_s? || "GET").upcase
-    action = spec["action"]?.try &.as_s? || ""
-    target = spec["target"]?.try &.as_s? || ""
-    swap   = spec["swap"]?.try   &.as_s? || "innerHTML"
-    cls    = cls_from_hints(spec)
-
-    hx_method = method == "POST" ? "post" : "get"
-    attrs = [
-      %Q(hx-#{hx_method}='/action/#{action}'),
-      (target.empty? ? nil : %Q(hx-target='#{html_escape target}')),
-      (swap.empty?   ? nil : %Q(hx-swap='#{html_escape swap}')),
-    ].compact.join(' ')
-    return %(<button class='btn #{cls}' #{attrs}>#{label}</button>)
+    return render_button_widget(w)
 
   when "form"
-    title  = html_escape(spec["title"]?.try &.as_s? || "Form")
-    fields = spec["fields"]?.try &.as_a? || [] of JSON::Any
-    method = (spec["method"]?.try &.as_s? || "POST").upcase
-    action = spec["action"]?.try &.as_s? || ""
-    after  = html_escape(spec["after"]?.try &.as_s?  || "Submitted.")
+    return render_form_widget(w)
 
-    inputs = fields.map do |f|
-      name = html_escape(f["name"]?.try &.as_s? || "field")
-      ph   = html_escape(f["placeholder"]?.try &.as_s? || "")
-      %(<input class='input' name='#{name}' placeholder='#{ph}' />)
-    end.join
-
-    hx_method = method == "POST" ? "post" : "get"
-    hx = %Q(hx-#{hx_method}='/action/#{action}' hx-swap='none' hx-on::after-request="this.reset(); document.querySelector('#flash').textContent='#{after}';")
-
-    return <<-HTML
-      <div class='h2'>#{title}</div>
-      <form class='row' #{hx}>
-        #{inputs}
-        <button class='btn'>Send</button>
-      </form>
-      <div id='flash' class='small muted'></div>
-    HTML
-
-  when "table"
-    table_id = html_escape(spec["id"]?.try &.as_s? || "tbl")
-    cols     = spec["columns"]?.try &.as_a? || [] of JSON::Any
-    rows     = spec["rows"]?.try &.as_a?    || [] of JSON::Any
-
-    thead = cols.map { |c| "<th>#{html_escape c.as_s}</th>" }.join
-    tbody = rows.map do |r|
-      cells = r.as_a.map { |c| "<td>#{html_escape c.to_s}</td>" }.join
-      "<tr>#{cells}</tr>"
-    end.join
-
-    return %(<table id='#{table_id}' class='table'><thead><tr>#{thead}</tr></thead><tbody>#{tbody}</tbody></table>)
   else
-    return %(<div class='p muted'>[unknown block: #{html_escape kind}]</div>)
+    return %(<div class='p muted'>[unknown widget: #{html_escape w.kind}]</div>)
   end
 end
 
-# Render a region from DB rows
-def render_region(rows : Array(BlockRow)) : String
-  String.build do |io|
-    rows.each do |r|
-      spec = JSON.parse(r.spec_json)
-      io << render_block(r.kind, spec)
-      io << "
-"
-    end
+# -- concrete widget renderers (no HTML in DB; pure templates) -----------------
+
+def render_value_widget(w : Widget) : String
+  return %(<div class='p muted'>[value requires entity_key]</div>) unless key = w.entity_key
+  ent = get_entity(key)
+  return %(<div class='p muted'>[missing entity #{html_escape key}]</div>) unless ent
+
+  label   = html_escape(w.label || key)
+  target  = target_id_for(key)
+  # semantic default: number shows unit; boolean shows on/off
+  # Fetch via GET /read/:key and swap text into target
+  btn = %(<button class='btn' hx-get='/read/#{key}' hx-target='##{target}' hx-swap='text'>Refresh</button>)
+  value = %(<strong id='#{target}'>—</strong>)
+  if (JSON.parse(ent.schema_json)["style"]? == JSON::Any.new("stat")) || (JSON.parse(w.hints)["style"]? == JSON::Any.new("stat"))
+    return %(<div class='stat'><span class='label'>#{label}</span>#{value} #{btn}</div>)
+  else
+    return %(<div class='row'><span>#{label}:</span> #{value} #{btn}</div>)
   end
 end
 
-# ------------------------------- Routes --------------------------------------
+
+def render_toggle_widget(w : Widget) : String
+  return %(<div class='p muted'>[toggle requires entity_key]</div>) unless key = w.entity_key
+  ent = get_entity(key)
+  return %(<div class='p muted'>[missing entity #{html_escape key}]</div>) unless ent
+  target = target_id_for(key)
+  on  = %(<button class='btn' hx-post='/write/#{key}' hx-vals='{"value": true}' hx-target='##{target}' hx-swap='text'>ON</button>)
+  off = %(<button class='btn' hx-post='/write/#{key}' hx-vals='{"value": false}' hx-target='##{target}' hx-swap='text'>OFF</button>)
+  label = html_escape(w.label || key)
+  return %(<div class='row'><span>#{label}:</span> <strong id='#{target}'>off</strong> #{on} #{off}</div>)
+end
+
+
+def render_button_widget(w : Widget) : String
+  return %(<div class='p muted'>[button requires entity_key]</div>) unless key = w.entity_key
+  label = html_escape(w.label || "Action")
+  hints = JSON.parse(w.hints)
+  op    = hints["op"]?.try &.as_s? || "read"
+  target = target_id_for(key)
+
+  case op
+  when "read"
+    return %(<button class='btn' hx-get='/read/#{key}' hx-target='##{target}' hx-swap='text'>#{label}</button>)
+  when "toggle"
+    return %(<button class='btn' hx-post='/write/#{key}' hx-vals='{"toggle": true}' hx-target='##{target}' hx-swap='text'>#{label}</button>)
+  when "write"
+    value = hints["value"]?.try { |v| v.to_s }
+    vals  = value ? %({"value": #{value}}) : "{}"
+    return %(<button class='btn' hx-post='/write/#{key}' hx-vals='#{vals}' hx-target='##{target}' hx-swap='text'>#{label}</button>)
+  else
+    return %(<button class='btn'>#{label}</button>)
+  end
+end
+
+
+def render_form_widget(w : Widget) : String
+  return %(<div class='p muted'>[form requires entity_key]</div>) unless key = w.entity_key
+  label = html_escape(w.label || key)
+  fields_json = JSON.parse(w.hints)["fields"]?.try &.as_s?
+  fields = fields_json ? JSON.parse(fields_json).as_a : [] of JSON::Any
+  inputs = fields.map do |f|
+    name = html_escape(f["name"]?.try &.as_s? || "field")
+    ph   = html_escape(f["placeholder"]?.try &.as_s? || "")
+    %(<input class='input' name='#{name}' placeholder='#{ph}' />)
+  end.join
+  flash_id = "flash-#{key}"
+  hx = %Q(hx-post='/write/#{key}' hx-swap='none' hx-on::after-request="this.reset(); document.getElementById('#{flash_id}').textContent='Sent.';")
+  return <<-HTML
+    <div class='h3'>#{label}</div>
+    <form class='row' #{hx}>
+      #{inputs}
+      <button class='btn'>Send</button>
+    </form>
+    <div id='#{flash_id}' class='small muted'></div>
+  HTML
+end
+
+# --------- Page render --------------------------------------------------------
 get "/" do |env|
   env.redirect "/page/home"
 end
 
 get "/page/:slug" do |env|
   slug = env.params.url["slug"]
-
-  page = DB_CONN.query_one?("SELECT id, title, hints FROM pages WHERE slug = ?", slug, as: {Int64, String, String})
+  page = DB_CONN.query_one?("SELECT id, title, hints FROM layouts WHERE slug = ?", slug, as: {Int64, String, String})
   halt env, status_code: 404, response: "No such page" unless page
 
-  page_id, title, hints_json = page
+  layout_id, title, hints_json = page
   hints = JSON.parse(hints_json)
-  max_width    = hints["max_width"]?.try &.as_s? || "1200px"
-  sidebar_w    = hints["sidebar_width"]?.try &.as_s? || "320px"
+  css = CSS_TEMPLATE
+    .gsub("%MAX_WIDTH%", hints["max_width"]?.try &.as_s? || "1200px")
+    .gsub("%SIDEBAR_WIDTH%", hints["sidebar_width"]?.try &.as_s? || "320px")
 
-  css = CSS_TEMPLATE.gsub("%MAX_WIDTH%", max_width).gsub("%SIDEBAR_WIDTH%", sidebar_w)
-
-  rows = [] of BlockRow
-  DB_CONN.query "SELECT region, kind, ord, spec FROM blocks WHERE page_id = ? ORDER BY region, ord, id", page_id do |rs|
+  widgets = [] of Widget
+  DB_CONN.query "SELECT region, ord, widget_kind, entity_key, label, hints FROM widgets WHERE layout_id = ? ORDER BY region, ord, id", layout_id do |rs|
     rs.each do
       region = rs.read(String)
-      kind   = rs.read(String)
       ord    = rs.read(Int64).to_i
-      spec   = rs.read(String)
-      rows << BlockRow.new(region, kind, ord, spec)
+      kind   = rs.read(String)
+      entkey = rs.read(String?)
+      label  = rs.read(String?)
+      hints  = rs.read(String)
+      widgets << Widget.new(region, ord, kind, entkey, label, hints)
     end
   end
 
-  # Group by region
-  by_region = Hash(String, Array(BlockRow)).new { |h, k| h[k] = [] of BlockRow }
-  rows.each { |r| by_region[r.region] << r }
+  regions = Hash(String, Array(Widget)).new { |h,k| h[k] = [] of Widget }
+  widgets.each { |w| regions[w.region] << w }
+
+  build = ->(ws : Array(Widget)) do
+    String.build { |io| ws.each { |w| io << render_widget(w) << "
+" } }
+  end
 
   html = BASE_TEMPLATE
     .gsub("%TITLE%", title)
     .gsub("%CSS%", css)
-    .gsub("%CHROME%",  render_region(by_region["chrome"]))
-    .gsub("%HEADER%",  render_region(by_region["header"]))
-    .gsub("%MAIN%",    render_region(by_region["main"]))
-    .gsub("%SIDEBAR%", render_region(by_region["sidebar"]))
-    .gsub("%FOOTER%",  render_region(by_region["footer"]))
+    .gsub("%CHROME%",  build.call(regions["chrome"]))
+    .gsub("%HEADER%",  build.call(regions["header"]))
+    .gsub("%MAIN%",    build.call(regions["main"]))
+    .gsub("%SIDEBAR%", build.call(regions["sidebar"]))
+    .gsub("%FOOTER%",  build.call(regions["footer"]))
 
   env.response.content_type = "text/html"
   html
 end
 
-# Interactive actions (server owns state/logic)
-post "/action/*" do |env|
-  handle_action(env)
-end
+# ----------------------------- Semantic actions -------------------------------
+# Generic: /read/:key returns a textual representation based on entity schema.
+get "/read/:key" do |env|
+  key = env.params.url["key"]
+  ent = get_entity(key)
+  halt env, status_code: 404, response: "No such entity" unless ent
 
-get "/action/*" do |env|
-  handle_action(env)
-end
-
-private def handle_action(env)
-  name = env.params.url["splat"]? || ""
-  name = name.split("?").first # defensive
-
-  case name
+  case ent.read_action
   when "temp"
     t = (20.0 + rand * 5).round(1)
+    unit = JSON.parse(ent.schema_json)["unit"]?.try &.as_s? || ""
     env.response.content_type = "text/plain"
-    return "#{t} °C"
-
-  when "append_reading"
-    now = Time.local
-    t = (20.0 + rand * 5).round(1)
-    row = %(<tr><td>#{now.to_s("%H:%M:%S")}</td><td>#{t} °C</td></tr>)
-    env.response.content_type = "text/html"
-    return row
-
-  when "toggle_led"
-    LED_ON.set(!LED_ON.get)
+    next "#{t} #{unit}".strip
+  when "led_state"
     env.response.content_type = "text/plain"
-    return LED_ON.get ? "on" : "off"
+    next (LED_ON.get ? "on" : "off")
+  when nil
+    env.response.status_code = 400
+    next "Entity not readable"
+  else
+    env.response.status_code = 400
+    next "Unknown read action"
+  end
+end
 
+# Generic: /write/:key applies a typed write based on entity schema.
+post "/write/:key" do |env|
+  key = env.params.url["key"]
+  ent = get_entity(key)
+  halt env, status_code: 404, response: "No such entity" unless ent
+
+  case ent.write_action
   when "set_led"
-    LED_ON.set(true)
+    if env.params.body["toggle"]? == "true"
+      LED_ON.set(!LED_ON.get)
+    else
+      v = env.params.body["value"]?
+      LED_ON.set(v == "true" || v == "1") if v
+    end
     env.response.content_type = "text/plain"
-    return "on"
-
-  when "clear_led"
-    LED_ON.set(false)
-    env.response.content_type = "text/plain"
-    return "off"
-
+    next (LED_ON.get ? "on" : "off")
   when "note"
     text = env.params.body["text"]?.to_s.strip
     puts "NOTE: #{text}"
     env.response.content_type = "text/plain"
-    return "ok"
+    next "ok"
+  when nil
+    env.response.status_code = 400
+    next "Entity not writable"
+  else
+    env.response.status_code = 400
+    next "Unknown write action"
+  end
+end
+
+Kemal.config.port = 3000
+Kemal.run
+# Server‑driven UI, but **semantic** (Crystal + SQLite)
+#
+# This version removes any HTML stored in the DB. You define **domain entities**
+# (Measurement, Actuator, Note, …) and **widgets** that reference those entities.
+# The server maps semantic kinds → templates and renders HTML at request time.
+#
+# Structure
+# ├── shards.yml
+# └── app.cr
+#
+# Run:
+#   shards install
+#   crystal run app.cr
+#   # open http://localhost:3000
+
+# ------------------------------ shards.yml -----------------------------------
+name: server_ui
+version: 0.2.0
+license: MIT
+authors:
+  - You <you@example.com>
+
+dependencies:
+  kemal:
+    github: kemalcr/kemal
+  sqlite3:
+    github: crystal-lang/crystal-sqlite3
+
+# ------------------------------- app.cr --------------------------------------
+require "kemal"
+require "db"
+require "sqlite3"
+require "json"
+
+APP_TITLE = "Device Console"
+DB_URL    = "sqlite3:./ui.db"
+
+# Simulated device state
+LED_ON    = Atomic(Bool).new(false)
+
+# ------------------------------- Schema --------------------------------------
+# No HTML in DB. Two layers:
+# 1) Model layer: semantic **entities** (measurement/actuator/note/etc.) with typed schema
+# 2) View layer: **layouts** and **widgets** that reference entities by key and
+#    give layout/presentation hints (still semantic: labels, roles, ops)
+
+SCHEMA_SQL = <<-SQL
+CREATE TABLE IF NOT EXISTS entities (
+  id INTEGER PRIMARY KEY,
+  key TEXT UNIQUE NOT NULL,           -- stable key like 'temp_sensor', 'led'
+  kind TEXT NOT NULL,                 -- 'measurement' | 'actuator' | 'note'
+  schema TEXT NOT NULL DEFAULT '{}',  -- JSON: {type: 'number'|'boolean'|'string', unit?, format?}
+  read_action  TEXT,                  -- symbolic handler name for reads
+  write_action TEXT                   -- symbolic handler name for writes
+);
+
+CREATE TABLE IF NOT EXISTS layouts (
+  id INTEGER PRIMARY KEY,
+  slug TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  hints TEXT NOT NULL DEFAULT '{}'    -- JSON: {max_width, sidebar_width, ...}
+);
+
+CREATE TABLE IF NOT EXISTS widgets (
+  id INTEGER PRIMARY KEY,
+  layout_id INTEGER NOT NULL,
+  region TEXT NOT NULL,               -- 'chrome'|'header'|'main'|'sidebar'|'footer'
+  ord INTEGER NOT NULL DEFAULT 0,
+  widget_kind TEXT NOT NULL,          -- 'heading'|'value'|'toggle'|'button'|'form'|'divider'
+  entity_key TEXT,                    -- references entities.key (nullable for heading/divider)
+  label TEXT,                         -- human label (plain text only)
+  hints TEXT NOT NULL DEFAULT '{}',   -- JSON: semantic/presentation hints (e.g., {level:1}, {op:'read'})
+  FOREIGN KEY(layout_id) REFERENCES layouts(id)
+);
+SQL
+
+DB_CONN = DB.open DB_URL
+DB_CONN.exec SCHEMA_SQL
+
+# ------------------------------- Seeding -------------------------------------
+count = DB_CONN.query_one("SELECT COUNT(*) FROM layouts", as: Int64)
+if count == 0
+  # Entities (semantics)
+  DB_CONN.exec "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
+    "temp_sensor", "measurement", {"type"=>"number","unit"=>"°C","format"=>"1dp"}.to_json, "temp", nil
+  DB_CONN.exec "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
+    "led", "actuator", {"type"=>"boolean"}.to_json, "led_state", "set_led"
+  DB_CONN.exec "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
+    "note", "note", {"type"=>"string","max"=>200}.to_json, nil, "note"
+
+  # Layout
+  DB_CONN.exec "INSERT INTO layouts (slug, title, hints) VALUES (?,?,?)",
+    "home", "Beagle Device Panel", {"sidebar_width"=>"300px","max_width"=>"1100px"}.to_json
+  layout_id = DB_CONN.query_one("SELECT last_insert_rowid()", as: Int64)
+
+  add = ->(region : String, ord : Int32, kind : String, entity_key : String?, label : String?, hints : Hash(String, JSON::Any) = {} of String => JSON::Any) do
+    DB_CONN.exec "INSERT INTO widgets (layout_id, region, ord, widget_kind, entity_key, label, hints) VALUES (?,?,?,?,?,?,?)",
+      layout_id, region, ord, kind, entity_key, label, hints.to_json
+  end
+
+  # Chrome (toolbar; semantic buttons)
+  add.call "chrome", 0, "button", "temp_sensor", "↻ Refresh temp", {"op"=>"read"}.as_h
+  add.call "chrome", 1, "button", "led",          "Toggle LED",   {"op"=>"toggle"}.as_h
+
+  # Header
+  add.call "header", 0, "heading", nil, "Beagle Device Panel", {"level"=>1}.as_h
+  add.call "header", 1, "heading", nil, "Server‑driven from semantics (no HTML in DB)", {"level"=>3}.as_h
+
+  # Sidebar values
+  add.call "sidebar", 0, "value",  "temp_sensor", "Temperature", {"style"=>"stat"}.as_h
+  add.call "sidebar", 1, "value",  "led",         "LED",         {"style"=>"stat"}.as_h
+  add.call "sidebar", 2, "divider", nil, nil, {} of String => JSON::Any
+  add.call "sidebar", 3, "form",   "note",        "Send Note",   {"fields"=>[{"name"=>"text","placeholder"=>"Type a note…"}].to_json}.as_h
+
+  # Main controls
+  add.call "main", 0, "heading", nil, "Live Controls", {"level"=>2}.as_h
+  add.call "main", 1, "button",  "temp_sensor", "Read temperature", {"op"=>"read"}.as_h
+  add.call "main", 2, "button",  "led",          "LED ON",          {"op"=>"write","value"=>true}.as_h
+  add.call "main", 3, "button",  "led",          "LED OFF",         {"op"=>"write","value"=>false}.as_h
+end
+
+# ------------------------------- Rendering -----------------------------------
+struct Widget
+  getter region, ord, kind, entity_key, label, hints
+  def initialize(@region : String, @ord : Int32, @kind : String, @entity_key : String?, @label : String?, @hints : String)
+  end
+end
+
+HTMX = %(<script src="https://unpkg.com/htmx.org@1.9.12"></script>)
+
+def html_escape(s : String) : String
+  s.gsub("&","&amp;").gsub("<","&lt;").gsub(">","&gt;")
+end
+
+CSS_TEMPLATE = <<-CSS
+:root{ --gap: 14px; --radius: 14px; --border:#e5e7eb; --bg:#ffffff; --muted:#6b7280; }
+*{ box-sizing: border-box }
+body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#f6f7f9; }
+.header{ position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--border); background: var(--bg); }
+.max{ max-width: %MAX_WIDTH%; margin: 0 auto; padding: 12px 16px; }
+.toolbar{ display:flex; gap: var(--gap); align-items:center; }
+.toolbar .spacer{ flex:1 }
+.grid{ display:grid; grid-template-columns: 1fr %SIDEBAR_WIDTH%; gap: var(--gap); align-items:start; }
+.main{ padding: 20px 16px; }
+.card{ background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.h1{ font-size: 28px; font-weight: 700; margin:0 0 6px 0; }
+.h2{ font-size: 20px; font-weight: 600; margin:0 0 6px 0; }
+.h3{ font-size: 16px; font-weight: 600; margin:0 0 6px 0; color:#374151 }
+.p{ margin: 6px 0; color: #111827; }
+.muted{ color: var(--muted); }
+.btn{ display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius: 12px; border:1px solid var(--border); background:#fff; cursor:pointer; }
+.btn:hover{ background:#fafafa; }
+.row{ display:flex; gap:10px; flex-wrap: wrap; align-items:center; }
+.stat{ display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border:1px solid var(--border); border-radius:12px; }
+.stat .label{ color: var(--muted); }
+.input{ padding:10px 12px; border:1px solid var(--border); border-radius: 12px; min-width: 0; }
+.divider{ height:1px; background: var(--border); margin:10px 0; }
+.small{ font-size:12px; color:var(--muted); }
+CSS
+
+BASE_TEMPLATE = <<-HTML
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>%TITLE%</title>
+    #{HTMX}
+    <style>%CSS%</style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="max">
+        <div class="toolbar">
+          %CHROME%
+          <span class="spacer"></span>
+          <span class="small">Server‑driven (semantic)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="max grid">
+        <div class="content">
+          <div class="card">%HEADER%</div>
+          <div class="card">%MAIN%</div>
+        </div>
+        <aside>
+          <div class="card">%SIDEBAR%</div>
+        </aside>
+      </div>
+    </div>
+
+    <footer class="max">
+      <div class="small muted">%FOOTER%</div>
+    </footer>
+  </body>
+</html>
+HTML
+
+# --------- Model helpers ------------------------------------------------------
+record Entity, key : String, kind : String, schema_json : String, read_action : String?, write_action : String?
+
+def get_entity(key : String) : Entity?
+  DB_CONN.query_one?("SELECT key, kind, schema, read_action, write_action FROM entities WHERE key = ?", key, as: {String, String, String, String?, String?})
+    .try { |t| Entity.new(*t) }
+end
+
+# --------- Renderer -----------------------------------------------------------
+
+def target_id_for(entity_key : String) : String
+  "value-#{entity_key}"
+end
+
+
+def render_widget(w : Widget) : String
+  hints = JSON.parse(w.hints)
+  case w.kind
+  when "heading"
+    lvl = hints["level"]?.try &.as_i? || 2
+    cls = case lvl
+      when 1 then "h1"
+      when 2 then "h2"
+      else         "h3"
+    end
+    label = html_escape(w.label || "")
+    return %(<div class='#{cls}'>#{label}</div>)
+
+  when "divider"
+    return %(<div class='divider'></div>)
+
+  when "value"
+    return render_value_widget(w)
+
+  when "toggle"
+    return render_toggle_widget(w)
+
+  when "button"
+    return render_button_widget(w)
+
+  when "form"
+    return render_form_widget(w)
 
   else
-    env.response.status_code = 404
-    return "Unknown action: #{name}"
+    return %(<div class='p muted'>[unknown widget: #{html_escape w.kind}]</div>)
+  end
+end
+
+# -- concrete widget renderers (no HTML in DB; pure templates) -----------------
+
+def render_value_widget(w : Widget) : String
+  return %(<div class='p muted'>[value requires entity_key]</div>) unless key = w.entity_key
+  ent = get_entity(key)
+  return %(<div class='p muted'>[missing entity #{html_escape key}]</div>) unless ent
+
+  label   = html_escape(w.label || key)
+  target  = target_id_for(key)
+  # semantic default: number shows unit; boolean shows on/off
+  # Fetch via GET /read/:key and swap text into target
+  btn = %(<button class='btn' hx-get='/read/#{key}' hx-target='##{target}' hx-swap='text'>Refresh</button>)
+  value = %(<strong id='#{target}'>—</strong>)
+  if (JSON.parse(ent.schema_json)["style"]? == JSON::Any.new("stat")) || (JSON.parse(w.hints)["style"]? == JSON::Any.new("stat"))
+    return %(<div class='stat'><span class='label'>#{label}</span>#{value} #{btn}</div>)
+  else
+    return %(<div class='row'><span>#{label}:</span> #{value} #{btn}</div>)
+  end
+end
+
+
+def render_toggle_widget(w : Widget) : String
+  return %(<div class='p muted'>[toggle requires entity_key]</div>) unless key = w.entity_key
+  ent = get_entity(key)
+  return %(<div class='p muted'>[missing entity #{html_escape key}]</div>) unless ent
+  target = target_id_for(key)
+  on  = %(<button class='btn' hx-post='/write/#{key}' hx-vals='{"value": true}' hx-target='##{target}' hx-swap='text'>ON</button>)
+  off = %(<button class='btn' hx-post='/write/#{key}' hx-vals='{"value": false}' hx-target='##{target}' hx-swap='text'>OFF</button>)
+  label = html_escape(w.label || key)
+  return %(<div class='row'><span>#{label}:</span> <strong id='#{target}'>off</strong> #{on} #{off}</div>)
+end
+
+
+def render_button_widget(w : Widget) : String
+  return %(<div class='p muted'>[button requires entity_key]</div>) unless key = w.entity_key
+  label = html_escape(w.label || "Action")
+  hints = JSON.parse(w.hints)
+  op    = hints["op"]?.try &.as_s? || "read"
+  target = target_id_for(key)
+
+  case op
+  when "read"
+    return %(<button class='btn' hx-get='/read/#{key}' hx-target='##{target}' hx-swap='text'>#{label}</button>)
+  when "toggle"
+    return %(<button class='btn' hx-post='/write/#{key}' hx-vals='{"toggle": true}' hx-target='##{target}' hx-swap='text'>#{label}</button>)
+  when "write"
+    value = hints["value"]?.try { |v| v.to_s }
+    vals  = value ? %({"value": #{value}}) : "{}"
+    return %(<button class='btn' hx-post='/write/#{key}' hx-vals='#{vals}' hx-target='##{target}' hx-swap='text'>#{label}</button>)
+  else
+    return %(<button class='btn'>#{label}</button>)
+  end
+end
+
+
+def render_form_widget(w : Widget) : String
+  return %(<div class='p muted'>[form requires entity_key]</div>) unless key = w.entity_key
+  label = html_escape(w.label || key)
+  fields_json = JSON.parse(w.hints)["fields"]?.try &.as_s?
+  fields = fields_json ? JSON.parse(fields_json).as_a : [] of JSON::Any
+  inputs = fields.map do |f|
+    name = html_escape(f["name"]?.try &.as_s? || "field")
+    ph   = html_escape(f["placeholder"]?.try &.as_s? || "")
+    %(<input class='input' name='#{name}' placeholder='#{ph}' />)
+  end.join
+  flash_id = "flash-#{key}"
+  hx = %Q(hx-post='/write/#{key}' hx-swap='none' hx-on::after-request="this.reset(); document.getElementById('#{flash_id}').textContent='Sent.';")
+  return <<-HTML
+    <div class='h3'>#{label}</div>
+    <form class='row' #{hx}>
+      #{inputs}
+      <button class='btn'>Send</button>
+    </form>
+    <div id='#{flash_id}' class='small muted'></div>
+  HTML
+end
+
+# --------- Page render --------------------------------------------------------
+get "/" do |env|
+  env.redirect "/page/home"
+end
+
+get "/page/:slug" do |env|
+  slug = env.params.url["slug"]
+  page = DB_CONN.query_one?("SELECT id, title, hints FROM layouts WHERE slug = ?", slug, as: {Int64, String, String})
+  halt env, status_code: 404, response: "No such page" unless page
+
+  layout_id, title, hints_json = page
+  hints = JSON.parse(hints_json)
+  css = CSS_TEMPLATE
+    .gsub("%MAX_WIDTH%", hints["max_width"]?.try &.as_s? || "1200px")
+    .gsub("%SIDEBAR_WIDTH%", hints["sidebar_width"]?.try &.as_s? || "320px")
+
+  widgets = [] of Widget
+  DB_CONN.query "SELECT region, ord, widget_kind, entity_key, label, hints FROM widgets WHERE layout_id = ? ORDER BY region, ord, id", layout_id do |rs|
+    rs.each do
+      region = rs.read(String)
+      ord    = rs.read(Int64).to_i
+      kind   = rs.read(String)
+      entkey = rs.read(String?)
+      label  = rs.read(String?)
+      hints  = rs.read(String)
+      widgets << Widget.new(region, ord, kind, entkey, label, hints)
+    end
+  end
+
+  regions = Hash(String, Array(Widget)).new { |h,k| h[k] = [] of Widget }
+  widgets.each { |w| regions[w.region] << w }
+
+  build = ->(ws : Array(Widget)) do
+    String.build { |io| ws.each { |w| io << render_widget(w) << "
+" } }
+  end
+
+  html = BASE_TEMPLATE
+    .gsub("%TITLE%", title)
+    .gsub("%CSS%", css)
+    .gsub("%CHROME%",  build.call(regions["chrome"]))
+    .gsub("%HEADER%",  build.call(regions["header"]))
+    .gsub("%MAIN%",    build.call(regions["main"]))
+    .gsub("%SIDEBAR%", build.call(regions["sidebar"]))
+    .gsub("%FOOTER%",  build.call(regions["footer"]))
+
+  env.response.content_type = "text/html"
+  html
+end
+
+# ----------------------------- Semantic actions -------------------------------
+# Generic: /read/:key returns a textual representation based on entity schema.
+get "/read/:key" do |env|
+  key = env.params.url["key"]
+  ent = get_entity(key)
+  halt env, status_code: 404, response: "No such entity" unless ent
+
+  case ent.read_action
+  when "temp"
+    t = (20.0 + rand * 5).round(1)
+    unit = JSON.parse(ent.schema_json)["unit"]?.try &.as_s? || ""
+    env.response.content_type = "text/plain"
+    next "#{t} #{unit}".strip
+  when "led_state"
+    env.response.content_type = "text/plain"
+    next (LED_ON.get ? "on" : "off")
+  when nil
+    env.response.status_code = 400
+    next "Entity not readable"
+  else
+    env.response.status_code = 400
+    next "Unknown read action"
+  end
+end
+
+# Generic: /write/:key applies a typed write based on entity schema.
+post "/write/:key" do |env|
+  key = env.params.url["key"]
+  ent = get_entity(key)
+  halt env, status_code: 404, response: "No such entity" unless ent
+
+  case ent.write_action
+  when "set_led"
+    if env.params.body["toggle"]? == "true"
+      LED_ON.set(!LED_ON.get)
+    else
+      v = env.params.body["value"]?
+      LED_ON.set(v == "true" || v == "1") if v
+    end
+    env.response.content_type = "text/plain"
+    next (LED_ON.get ? "on" : "off")
+  when "note"
+    text = env.params.body["text"]?.to_s.strip
+    puts "NOTE: #{text}"
+    env.response.content_type = "text/plain"
+    next "ok"
+  when nil
+    env.response.status_code = 400
+    next "Entity not writable"
+  else
+    env.response.status_code = 400
+    next "Unknown write action"
   end
 end
 
