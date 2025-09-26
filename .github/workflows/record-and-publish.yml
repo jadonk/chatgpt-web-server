@@ -1,0 +1,70 @@
+name: Record UI and publish media
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/**'
+      - 'shard.yml'
+      - 'demo/**'
+      - 'Dockerfile.app'
+      - 'docker-compose.yml'
+
+permissions:
+  contents: write   # needed to commit MP4/GIF into the repo
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start the app
+        run: docker compose up --build -d app
+
+      - name: Wait for healthcheck
+        run: |
+          for i in {1..40}; do
+            if curl -fsS http://localhost:3000/page/home > /dev/null; then exit 0; fi
+            sleep 3
+          done
+          echo "App did not become healthy" >&2
+          exit 1
+
+      - name: Record browser session with Playwright
+        run: docker compose run --rm recorder
+
+      - name: Pick latest recording
+        id: pick
+        run: |
+          LATEST=$(ls -t demo/recordings/*.webm | head -n1)
+          echo "latest=$LATEST" >> $GITHUB_OUTPUT
+
+      - name: Ensure assets dir
+        run: mkdir -p assets
+
+      - name: Convert to MP4 (FFmpeg in Docker)
+        run: |
+          docker run --rm -v "$PWD:/work" jrottenberg/ffmpeg:6.1-alpine \
+            -i "/work/${{ steps.pick.outputs.latest }}" \
+            -vf "scale='min(1200,iw)':-2:flags=bicubic,fps=30" \
+            -c:v libx264 -crf 23 -pix_fmt yuv420p -movflags +faststart -an \
+            "/work/assets/demo.mp4"
+
+      - name: Convert to GIF (palette method)
+        run: |
+          docker run --rm -v "$PWD:/work" jrottenberg/ffmpeg:6.1-alpine \
+            -i "/work/${{ steps.pick.outputs.latest }}" \
+            -vf "fps=12,scale=800:-2:flags=bicubic,palettegen" \
+            -y "/work/assets/palette.png"
+
+          docker run --rm -v "$PWD:/work" jrottenberg/ffmpeg:6.1-alpine \
+            -i "/work/${{ steps.pick.outputs.latest }}" -i "/work/assets/palette.png" \
+            -lavfi "fps=12,scale=800:-2:flags=bicubic,paletteuse=dither=bayer:bayer_scale=1" \
+            -y "/work/assets/demo.gif"
+
+      - name: Commit media back to repo
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update demo recording (MP4+GIF)"
+          file_pattern: assets/demo.mp4 assets/demo.gif
+
