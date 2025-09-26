@@ -74,24 +74,12 @@ module SemanticUI
       return if layouts_count > 0
 
       # Entities
-      @db.exec(
-        "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
-        "temp_sensor", "measurement", {"type" => "number", "unit" => "°C", "format" => "1dp"}.to_json, "temp", nil
-      )
-      @db.exec(
-        "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
-        "led", "actuator", {"type" => "boolean"}.to_json, "led_state", "set_led"
-      )
-      @db.exec(
-        "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
-        "note", "note", {"type" => "string", "max" => 200}.to_json, nil, "note"
-      )
+      add_entities "temp_sensor", "measurement", {"type" => "number", "unit" => "°C", "format" => "1dp"}.to_json, "temp", nil
+      add_entities "led", "actuator", {"type" => "boolean"}.to_json, "led_state", "set_led"
+      add_entities "note", "note", {"type" => "string", "max" => 200}.to_json, nil, "note"
 
       # Layout
-      @db.exec(
-        "INSERT INTO layouts (slug, title, hints) VALUES (?,?,?)",
-        "home", "Beagle Device Panel", {"sidebar_width" => "300px", "max_width" => "1100px"}.to_json
-      )
+      add_layout "home", "Beagle Device Panel", {"sidebar_width" => "300px", "max_width" => "1100px"}.to_json
       layout_id = @db.query_one("SELECT last_insert_rowid()", as: Int64)
 
       # Widgets
@@ -110,6 +98,20 @@ module SemanticUI
       add_widget layout_id, "main", 1, "button", "temp_sensor", "Read temperature", {"op" => "read"}.to_json
       add_widget layout_id, "main", 2, "button", "led", "LED ON", {"op" => "write", "value" => true}.to_json
       add_widget layout_id, "main", 3, "button", "led", "LED OFF", {"op" => "write", "value" => false}.to_json
+    end
+
+    private def add_entities(key, kind, schema, read_action, write_action)
+      @db.exec(
+        "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
+        key, kind, schema, read_action, write_action
+      )
+    end
+
+    private def add_layout(slug, title, hints)
+      @db.exec(
+        "INSERT INTO layouts (slug, title, hints) VALUES (?,?,?)",
+        slug, title, hints
+      )
     end
 
     private def add_widget(

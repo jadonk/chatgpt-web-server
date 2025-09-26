@@ -1,0 +1,23 @@
+name: Crystal CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+      - name: Install shards
+        run: shards install --skip-postinstall
+      - name: Format check
+        run: crystal tool format --check
+      - name: Specs
+        run: crystal spec --error-trace
+      - name: Build
+        run: shards build --release
+

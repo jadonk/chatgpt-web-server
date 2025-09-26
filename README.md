@@ -33,7 +33,7 @@ You declare **entities** (domain objects) and **widgets** (UI blocks) in SQLite;
 
 ## Quick start
 ```bash
-shards run
+rm -f ui.db && shards run
 # open http://localhost:3000
 ```
 First run creates `ui.db` and seeds a demo page (`/page/home`).
