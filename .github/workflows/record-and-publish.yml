@@ -27,7 +27,7 @@ jobs:
           docker compose logs app || true
           exit 1
 
-      - name: Record with Playwright (saves .webm under demo/recordings/)
+      - name: Record with Playwright (saves .webm under demo/recordings/<test>/)
         run: |
           cd demo
           ./setup.sh
@@ -36,7 +36,7 @@ jobs:
       - name: Pick latest recording
         id: pick
         run: |
-          LATEST=$(ls -t demo/recordings/*.webm | head -n1)
+          LATEST=$(ls -t demo/recordings/*/*.webm | head -n1)
           echo "latest=$LATEST" >> $GITHUB_OUTPUT
 
       - name: Ensure assets dir
