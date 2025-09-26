@@ -82,8 +82,8 @@ jobs:
       - name: Build docs
         run: shards && crystal docs
 
-      - name: Copy assets t docs
-        run: mkdir -p docs/assets && cp assets/* docs/assets/
+      - name: Copy assets to docs
+        run: mkdir -p docs/assets && cp assets/* docs/assets/ && cp public/favicon.ico docs/
 
       - name: Deploy docs on Github Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4
