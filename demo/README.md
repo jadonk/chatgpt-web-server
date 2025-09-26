@@ -5,13 +5,15 @@ In a separate terminal:
 ```bash
 shards run
 # or: crystal run src/chatgpt-web-server.cr
+# or: ./run-app-in-container.sh
 ```
 
 ## 2) Record with Playwright
+In the demo directory:
 ```bash
-cd demo
-npm install
-npm run install:browsers
-npm run record
+# ./setup.sh
+npm install --silent
+npx playwright install --with-deps
+# ./run.sh
+npx playwright test --config=${PWD}/playwright.config.ts --reporter=line
 ```
-
