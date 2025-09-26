@@ -43,6 +43,13 @@ CREATE TABLE IF NOT EXISTS widgets (
 SQL
 
 DB_CONN = DB.open(DB_URL)
+
+# Some drivers don't run multi-statement SQL in one exec; split on ';' to be safe.
+SCHEMA_SQL.split(';').each do |stmt|
+  sql = stmt.strip
+  next if sql.empty?
+  DB_CONN.exec sql
+end
 DB_CONN.exec SCHEMA_SQL
 
 # --------------------------- Helper (top-level) -------------------------------
