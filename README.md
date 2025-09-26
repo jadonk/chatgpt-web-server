@@ -2,9 +2,9 @@
 
 Several of the statements below are false, but the web server does serve up a pretty slick little UI.
 
-<video src="assets/demo.mp4" controls muted playsinline width="800"></video>
+<video src="https://jadonk.github.io/chatgpt-web-server/assets/demo.mp4" controls muted playsinline width="800"></video>
 
-![Live demo](assets/demo.gif)
+![Live demo](https://jadonk.github.io/chatgpt-web-server/assets/demo.gif)
 
 # Semantic UI (Crystal + SQLite + Kemal)
 

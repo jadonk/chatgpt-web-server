@@ -61,21 +61,6 @@ jobs:
             -lavfi "fps=12,scale=800:-2:flags=bicubic,paletteuse=dither=bayer:bayer_scale=1" \
             -y "/work/assets/demo.gif"
 
-      - name: Commit media back to repo
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: update demo recording (MP4+GIF)"
-          file_pattern: assets/demo.mp4 assets/demo.gif
-
-      - name: Upload artifact (also handy)
-        uses: actions/upload-artifact@v4
-        with:
-          name: demo-recordings
-          path: |
-            demo/recordings/**
-            assets/demo.mp4
-            assets/demo.gif
-
       - name: Install Crystal
         uses: crystal-lang/install-crystal@v1
 
@@ -84,6 +69,16 @@ jobs:
 
       - name: Copy assets to docs
         run: mkdir -p docs/assets && cp assets/* docs/assets/ && cp public/favicon.ico docs/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-recordings
+          path: |
+            demo/recordings/**
+            assets/demo.mp4
+            assets/demo.gif
+            docs/**
 
       - name: Deploy docs on Github Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4
