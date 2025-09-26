@@ -22,9 +22,9 @@ You declare **entities** (domain objects) and **widgets** (UI blocks) in SQLite;
 ```
 .
 ├── shards.yml                 # deps: kemal, sqlite3
-├── app.cr                     # thin Kemal runner
 ├── src/
-│   └── semantic_ui.cr         # module: Engine + Render + data structs
+│   ├── semantic_ui.cr         # module: Engine + Render + data structs
+│   └── chatgpt-web-server.cr  # thin Kemal runner
 └── spec/
     └── semantic_ui_spec.cr    # tests
 ```
@@ -33,9 +33,7 @@ You declare **entities** (domain objects) and **widgets** (UI blocks) in SQLite;
 
 ## Quick start
 ```bash
-shards install
-crystal tool format
-crystal run app.cr
+shards run
 # open http://localhost:3000
 ```
 First run creates `ui.db` and seeds a demo page (`/page/home`).
@@ -169,8 +167,8 @@ Add `{"trigger":"load, every 10s"}` to a value widget’s `hints` and include an
 
 ## Production
 ```bash
-crystal build --release app.cr
-./app
+shards build --release
+./chatgpt-web-server
 ```
 Run behind a reverse proxy (nginx/Caddy). Add auth/CSRF if exposing publicly (this demo has none).
 
