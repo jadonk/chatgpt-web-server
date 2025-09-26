@@ -54,41 +54,45 @@ count = DB_CONN.query_one("SELECT COUNT(*) FROM layouts", as: Int64)
 if count == 0
   # Entities (semantics)
   DB_CONN.exec "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
-    "temp_sensor", "measurement", {"type" => "number", "unit" => "°C", "format" => "1dp"}.to_json, "temp", nil
+    "temp_sensor", "measurement", {"type"=>"number","unit"=>"°C","format"=>"1dp"}.to_json, "temp", nil
   DB_CONN.exec "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
-    "led", "actuator", {"type" => "boolean"}.to_json, "led_state", "set_led"
+    "led", "actuator", {"type"=>"boolean"}.to_json, "led_state", "set_led"
   DB_CONN.exec "INSERT INTO entities (key, kind, schema, read_action, write_action) VALUES (?,?,?,?,?)",
-    "note", "note", {"type" => "string", "max" => 200}.to_json, nil, "note"
+    "note", "note", {"type"=>"string","max"=>200}.to_json, nil, "note"
 
   # Layout
   DB_CONN.exec "INSERT INTO layouts (slug, title, hints) VALUES (?,?,?)",
     "home", "Beagle Device Panel", {"sidebar_width"=>"300px","max_width"=>"1100px"}.to_json
   layout_id = DB_CONN.query_one("SELECT last_insert_rowid()", as: Int64)
 
-  add = ->(region : String, ord : Int32, kind : String, entity_key : String?, label : String?, hints : Hash(String, JSON::Any) = {} of String => JSON::Any) do
-    DB_CONN.exec "INSERT INTO widgets (layout_id, region, ord, widget_kind, entity_key, label, hints) VALUES (?,?,?,?,?,?,?)",
-      layout_id, region, ord, kind, entity_key, label, hints.to_json
-  end
+  private def add_widget(
+  layout_id : Int64, region : String, ord : Int32,
+  kind : String, entity_key : String?, label : String?,
+  hints_json : String = "{}"
+)
+  DB_CONN.exec "INSERT INTO widgets (layout_id, region, ord, widget_kind, entity_key, label, hints) VALUES (?,?,?,?,?,?,?)",
+    layout_id, region, ord, kind, entity_key, label, hints_json
+end
 
   # Chrome (toolbar; semantic buttons)
-  add.call "chrome", 0, "button", "temp_sensor", "↻ Refresh temp", {"op"=>"read"}.as_h
-  add.call "chrome", 1, "button", "led",          "Toggle LED",   {"op"=>"toggle"}.as_h
+  add_widget layout_id, "chrome", 0, "button", "temp_sensor", "↻ Refresh temp", {"op"=>"read"}.to_json
+  add_widget layout_id, "chrome", 1, "button", "led",          "Toggle LED",   {"op"=>"toggle"}.to_json
 
   # Header
-  add.call "header", 0, "heading", nil, "Beagle Device Panel", {"level"=>1}.as_h
-  add.call "header", 1, "heading", nil, "Server‑driven from semantics (no HTML in DB)", {"level"=>3}.as_h
+  add_widget layout_id, "header", 0, "heading", nil, "Beagle Device Panel", {"level"=>1}.to_json
+  add_widget layout_id, "header", 1, "heading", nil, "Server‑driven from semantics (no HTML in DB)", {"level"=>3}.to_json
 
   # Sidebar values
-  add.call "sidebar", 0, "value",  "temp_sensor", "Temperature", {"style"=>"stat"}.as_h
-  add.call "sidebar", 1, "value",  "led",         "LED",         {"style"=>"stat"}.as_h
-  add.call "sidebar", 2, "divider", nil, nil, {} of String => JSON::Any
-  add.call "sidebar", 3, "form",   "note",        "Send Note",   {"fields"=>[{"name"=>"text","placeholder"=>"Type a note…"}].to_json}.as_h
+  add_widget layout_id, "sidebar", 0, "value",  "temp_sensor", "Temperature", {"style"=>"stat"}.to_json
+  add_widget layout_id, "sidebar", 1, "value",  "led",         "LED",         {"style"=>"stat"}.to_json
+  add_widget layout_id, "sidebar", 2, "divider", nil, nil, "{}"
+  add_widget layout_id, "sidebar", 3, "form",   "note",        "Send Note",   {"fields"=>[{"name"=>"text","placeholder"=>"Type a note…"}]}.to_json
 
   # Main controls
-  add.call "main", 0, "heading", nil, "Live Controls", {"level"=>2}.as_h
-  add.call "main", 1, "button",  "temp_sensor", "Read temperature", {"op"=>"read"}.as_h
-  add.call "main", 2, "button",  "led",          "LED ON",          {"op"=>"write","value"=>true}.as_h
-  add.call "main", 3, "button",  "led",          "LED OFF",         {"op"=>"write","value"=>false}.as_h
+  add_widget layout_id, "main", 0, "heading", nil, "Live Controls", {"level"=>2}.to_json
+  add_widget layout_id, "main", 1, "button",  "temp_sensor", "Read temperature", {"op"=>"read"}.to_json
+  add_widget layout_id, "main", 2, "button",  "led",          "LED ON",          {"op"=>"write","value"=>true}.to_json
+  add_widget layout_id, "main", 3, "button",  "led",          "LED OFF",         {"op"=>"write","value"=>false}.to_json
 end
 
 # ------------------------------- Rendering -----------------------------------
@@ -171,7 +175,11 @@ BASE_TEMPLATE = <<-HTML
 HTML
 
 # --------- Model helpers ------------------------------------------------------
-record Entity, key : String, kind : String, schema_json : String, read_action : String?, write_action : String?
+struct Entity
+  getter key, kind, schema_json, read_action, write_action
+  def initialize(@key : String, @kind : String, @schema_json : String, @read_action : String?, @write_action : String?)
+  end
+end
 
 def get_entity(key : String) : Entity?
   DB_CONN.query_one?("SELECT key, kind, schema, read_action, write_action FROM entities WHERE key = ?", key, as: {String, String, String, String?, String?})
@@ -225,17 +233,21 @@ def render_value_widget(w : Widget) : String
   ent = get_entity(key)
   return %(<div class='p muted'>[missing entity #{html_escape key}]</div>) unless ent
 
-  label   = html_escape(w.label || key)
-  target  = target_id_for(key)
-  # semantic default: number shows unit; boolean shows on/off
+  label  = html_escape(w.label || key)
+  target = target_id_for(key)
+  h      = JSON.parse(w.hints)
+  style  = h["style"]?.try &.as_s? || ""
+
   # Fetch via GET /read/:key and swap text into target
-  btn = %(<button class='btn' hx-get='/read/#{key}' hx-target='##{target}' hx-swap='text'>Refresh</button>)
+  btn   = %(<button class='btn' hx-get='/read/#{key}' hx-target='##{target}' hx-swap='text'>Refresh</button>)
   value = %(<strong id='#{target}'>—</strong>)
-  if (JSON.parse(ent.schema_json)["style"]? == JSON::Any.new("stat")) || (JSON.parse(w.hints)["style"]? == JSON::Any.new("stat"))
+
+  if style == "stat"
     return %(<div class='stat'><span class='label'>#{label}</span>#{value} #{btn}</div>)
   else
     return %(<div class='row'><span>#{label}:</span> #{value} #{btn}</div>)
   end
+end
 end
 
 
@@ -253,9 +265,9 @@ end
 
 def render_button_widget(w : Widget) : String
   return %(<div class='p muted'>[button requires entity_key]</div>) unless key = w.entity_key
-  label = html_escape(w.label || "Action")
-  hints = JSON.parse(w.hints)
-  op    = hints["op"]?.try &.as_s? || "read"
+  label  = html_escape(w.label || "Action")
+  hints  = JSON.parse(w.hints)
+  op     = hints["op"]?.try &.as_s? || "read"
   target = target_id_for(key)
 
   case op
@@ -264,25 +276,46 @@ def render_button_widget(w : Widget) : String
   when "toggle"
     return %(<button class='btn' hx-post='/write/#{key}' hx-vals='{"toggle": true}' hx-target='##{target}' hx-swap='text'>#{label}</button>)
   when "write"
-    value = hints["value"]?.try { |v| v.to_s }
-    vals  = value ? %({"value": #{value}}) : "{}"
+    vals = hints["value"]? ? %({"value": #{hints["value"].to_json}}) : "{}"
     return %(<button class='btn' hx-post='/write/#{key}' hx-vals='#{vals}' hx-target='##{target}' hx-swap='text'>#{label}</button>)
   else
     return %(<button class='btn'>#{label}</button>)
   end
+end
 end
 
 
 def render_form_widget(w : Widget) : String
   return %(<div class='p muted'>[form requires entity_key]</div>) unless key = w.entity_key
   label = html_escape(w.label || key)
-  fields_json = JSON.parse(w.hints)["fields"]?.try &.as_s?
-  fields = fields_json ? JSON.parse(fields_json).as_a : [] of JSON::Any
+
+  h = JSON.parse(w.hints)
+  fields_node = h["fields"]?
+  fields = if (arr = fields_node.try &.as_a?)
+    arr
+  elsif (s = fields_node.try &.as_s?)
+    JSON.parse(s).as_a
+  else
+    [] of JSON::Any
+  end
+
   inputs = fields.map do |f|
     name = html_escape(f["name"]?.try &.as_s? || "field")
     ph   = html_escape(f["placeholder"]?.try &.as_s? || "")
     %(<input class='input' name='#{name}' placeholder='#{ph}' />)
   end.join
+
+  flash_id = "flash-#{key}"
+  hx = %Q(hx-post='/write/#{key}' hx-swap='none' hx-on::after-request="this.reset(); document.getElementById('#{flash_id}').textContent='Sent.';")
+  return <<-HTML
+    <div class='h3'>#{label}</div>
+    <form class='row' #{hx}>
+      #{inputs}
+      <button class='btn'>Send</button>
+    </form>
+    <div id='#{flash_id}' class='small muted'></div>
+  HTML
+end.join
   flash_id = "flash-#{key}"
   hx = %Q(hx-post='/write/#{key}' hx-swap='none' hx-on::after-request="this.reset(); document.getElementById('#{flash_id}').textContent='Sent.';")
   return <<-HTML
