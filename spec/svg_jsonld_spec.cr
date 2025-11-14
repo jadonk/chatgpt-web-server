@@ -49,7 +49,7 @@ describe "SvgEmitter" do
     svg.includes?("Hello").should be_true
     svg.includes?(">T1<").should be_true
     idx_hello = svg.index("Hello").not_nil!
-    idx_t1    = svg.index(">T1<").not_nil!
+    idx_t1 = svg.index(">T1<").not_nil!
     (idx_hello < idx_t1).should be_true
   end
 end
