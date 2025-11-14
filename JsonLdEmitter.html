@@ -14,7 +14,7 @@
 <script type="text/javascript" src="js/doc.js"></script>
 
   <meta name="repository-name" content="chatgpt-web-server">
-  <title>SemanticUI - chatgpt-web-server feat/svg-skeleton</title>
+  <title>JsonLdEmitter - chatgpt-web-server feat/svg-skeleton</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "";
   </script>
@@ -62,7 +62,7 @@
       
     </li>
   
-  <li class=" " data-id="chatgpt-web-server/JsonLdEmitter" data-name="jsonldemitter">
+  <li class=" current" data-id="chatgpt-web-server/JsonLdEmitter" data-name="jsonldemitter">
       <a href="JsonLdEmitter.html">JsonLdEmitter</a>
       
     </li>
@@ -117,7 +117,7 @@
       
     </li>
   
-  <li class="parent open current" data-id="chatgpt-web-server/SemanticUI" data-name="semanticui">
+  <li class="parent " data-id="chatgpt-web-server/SemanticUI" data-name="semanticui">
       <a href="SemanticUI.html">SemanticUI</a>
       
         <ul>
@@ -163,7 +163,7 @@
 
   <span class="kind">
     module
-  </span> SemanticUI
+  </span> JsonLdEmitter
 
 </h1>
 
@@ -171,6 +171,18 @@
 
 
 
+  <h2>
+    <a id="overview" class="anchor" href="#overview">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Overview
+  </h2>
+
+  <p>Emit minimal schema.org JSON-LD for SEO/accessibility.</p>
+<p>Use alongside SVG so crawlers get structured meaning even though
+the visual output is 100% SVG.</p>
 
 
 
@@ -178,6 +190,21 @@
 
 
 
+
+
+  <h2>
+    <a id="extended-modules" class="anchor" href="#extended-modules">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Extended Modules
+  </h2>
+  <ul class="other-types-list">
+    
+      <li class="other-type"><a href="JsonLdEmitter.html">JsonLdEmitter</a></li>
+    
+  </ul>
 
 
 
@@ -196,8 +223,8 @@
   </h2>
   
     
-      <a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/semantic_ui.cr#L7" target="_blank">
-        semantic_ui.cr
+      <a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/jsonld_emitter.cr#L8" target="_blank">
+        jsonld_emitter.cr
       </a>
     
     <br/>
@@ -214,6 +241,25 @@
   
 
   
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#emit%28page%3ALayout%3A%3APage%29%3AString-instance-method" class="signature"><strong>#emit</strong>(page : Layout::Page) : String</a>
+        
+          <div class="summary"><p>Build a small WebPage JSON-LD document from a Layout::Page.</p></div>
+        
+      </li>
+    
+  </ul>
+
 
 
   <div class="methods-inherited">
@@ -227,6 +273,37 @@
   
 
   
+  <h2>
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="emit(page:Layout::Page):String-instance-method">
+      <div class="signature">
+        
+        def <strong>emit</strong>(page : <a href="Layout/Page.html">Layout::Page</a>) : String
+
+        <a class="method-permalink" href="#emit%28page%3ALayout%3A%3APage%29%3AString-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Build a small WebPage JSON-LD document from a Layout::Page.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/jsonld_emitter.cr#L12" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
 
 
 </div>

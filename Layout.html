@@ -14,7 +14,7 @@
 <script type="text/javascript" src="js/doc.js"></script>
 
   <meta name="repository-name" content="chatgpt-web-server">
-  <title>SemanticUI - chatgpt-web-server feat/svg-skeleton</title>
+  <title>Layout - chatgpt-web-server feat/svg-skeleton</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "";
   </script>
@@ -67,7 +67,7 @@
       
     </li>
   
-  <li class="parent " data-id="chatgpt-web-server/Layout" data-name="layout">
+  <li class="parent open current" data-id="chatgpt-web-server/Layout" data-name="layout">
       <a href="Layout.html">Layout</a>
       
         <ul>
@@ -117,7 +117,7 @@
       
     </li>
   
-  <li class="parent open current" data-id="chatgpt-web-server/SemanticUI" data-name="semanticui">
+  <li class="parent " data-id="chatgpt-web-server/SemanticUI" data-name="semanticui">
       <a href="SemanticUI.html">SemanticUI</a>
       
         <ul>
@@ -163,13 +163,30 @@
 
   <span class="kind">
     module
-  </span> SemanticUI
+  </span> Layout
 
 </h1>
 
 
 
 
+
+  <h2>
+    <a id="overview" class="anchor" href="#overview">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Overview
+  </h2>
+
+  <p>Typed, minimal layout primitives for SVG emission.
+Coordinates are <em>relative to the parent container's origin</em>.
+The Page's origin (0,0) is the top-left of the SVG viewport.
+Units are CSS pixels for now (a unit system can be layered later).</p>
+<p>Reading order == DOM order: place nodes in the order you want screen
+readers to traverse them. Accessibility metadata is carried on nodes
+and emitted into <title>/<desc> or ARIA attributes as appropriate.</p>
 
 
 
@@ -196,8 +213,8 @@
   </h2>
   
     
-      <a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/semantic_ui.cr#L7" target="_blank">
-        semantic_ui.cr
+      <a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/layout.cr#L9" target="_blank">
+        layout.cr
       </a>
     
     <br/>

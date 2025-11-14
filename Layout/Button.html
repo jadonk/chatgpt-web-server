@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="chatgpt-web-server">
-  <title>SemanticUI::Render - chatgpt-web-server feat/svg-skeleton</title>
+  <title>Layout::Button - chatgpt-web-server feat/svg-skeleton</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -67,12 +67,12 @@
       
     </li>
   
-  <li class="parent " data-id="chatgpt-web-server/Layout" data-name="layout">
+  <li class="parent open current" data-id="chatgpt-web-server/Layout" data-name="layout">
       <a href="../Layout.html">Layout</a>
       
         <ul>
   
-  <li class=" " data-id="chatgpt-web-server/Layout/Button" data-name="layout::button">
+  <li class=" current" data-id="chatgpt-web-server/Layout/Button" data-name="layout::button">
       <a href="../Layout/Button.html">Button</a>
       
     </li>
@@ -117,7 +117,7 @@
       
     </li>
   
-  <li class="parent open current" data-id="chatgpt-web-server/SemanticUI" data-name="semanticui">
+  <li class="parent " data-id="chatgpt-web-server/SemanticUI" data-name="semanticui">
       <a href="../SemanticUI.html">SemanticUI</a>
       
         <ul>
@@ -132,7 +132,7 @@
       
     </li>
   
-  <li class=" current" data-id="chatgpt-web-server/SemanticUI/Render" data-name="semanticui::render">
+  <li class=" " data-id="chatgpt-web-server/SemanticUI/Render" data-name="semanticui::render">
       <a href="../SemanticUI/Render.html">Render</a>
       
     </li>
@@ -162,11 +162,13 @@
 <h1 class="type-name">
 
   <span class="kind">
-    module
-  </span> SemanticUI::<wbr>Render
+    class
+  </span> Layout::<wbr>Button
 
 </h1>
 
+
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Layout/Button.html">Layout::Button</a></li><li class="superclass"><a href="../Layout/Node.html">Layout::Node</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
 
 
 
@@ -180,7 +182,7 @@
     Overview
   </h2>
 
-  <p>------------------------------- Render -------------------------------------</p>
+  <p>A clickable region rendered as <a>&lt;g role=&quot;button&quot; ...&gt;<rect/><text/></g></a>.</p>
 
 
 
@@ -189,20 +191,6 @@
 
 
 
-
-  <h2>
-    <a id="extended-modules" class="anchor" href="#extended-modules">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Extended Modules
-  </h2>
-  <ul class="other-types-list">
-    
-      <li class="other-type"><a href="../SemanticUI/Render.html">SemanticUI::Render</a></li>
-    
-  </ul>
 
 
 
@@ -221,8 +209,8 @@
   </h2>
   
     
-      <a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/semantic_ui.cr#L199" target="_blank">
-        semantic_ui.cr
+      <a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/layout.cr#L45" target="_blank">
+        layout.cr
       </a>
     
     <br/>
@@ -230,38 +218,26 @@
 
 
 
+
+
   
-    <h2>
-      <a id="constant-summary" class="anchor" href="#constant-summary">
+  <h2>
+    <a id="constructors" class="anchor" href="#constructors">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>
-      Constant Summary
-    </h2>
-  
-  <dl>
+    Constructors
+  </h2>
+  <ul class="list-summary">
     
-      <dt class="entry-const" id="BASE_TEMPLATE">
-        <strong>BASE_TEMPLATE</strong> = <code><span class="s">&quot;&lt;!doctype html&gt;\n&lt;html lang=\&quot;en\&quot;&gt;\n  &lt;head&gt;\n    &lt;meta charset=\&quot;utf-8\&quot; /&gt;\n    &lt;meta name=\&quot;viewport\&quot; content=\&quot;width=device-width, initial-scale=1\&quot; /&gt;\n    &lt;title&gt;%TITLE%&lt;/title&gt;\n    </span><span class="i">#{</span><span class="t">HTMX</span><span class="i">}</span><span class="s">\n    &lt;style&gt;%CSS%&lt;/style&gt;\n  &lt;/head&gt;\n  &lt;body&gt;\n    &lt;div class=\&quot;header\&quot;&gt;\n      &lt;div class=\&quot;max\&quot;&gt;\n        &lt;div class=\&quot;toolbar\&quot;&gt;\n          %CHROME%\n          &lt;span class=\&quot;spacer\&quot;&gt;&lt;/span&gt;\n          &lt;span class=\&quot;small\&quot;&gt;Server‑driven (semantic)&lt;/span&gt;\n        &lt;/div&gt;\n      &lt;/div&gt;\n    &lt;/div&gt;\n\n    &lt;div class=\&quot;main\&quot;&gt;\n      &lt;div class=\&quot;max grid\&quot;&gt;\n        &lt;div class=\&quot;content\&quot;&gt;\n          &lt;div class=\&quot;card\&quot;&gt;%HEADER%&lt;/div&gt;\n          &lt;div class=\&quot;card\&quot;&gt;%MAIN%&lt;/div&gt;\n        &lt;/div&gt;\n        &lt;aside&gt;\n          &lt;div class=\&quot;card\&quot;&gt;%SIDEBAR%&lt;/div&gt;\n        &lt;/aside&gt;\n      &lt;/div&gt;\n    &lt;/div&gt;\n\n    &lt;footer class=\&quot;max\&quot;&gt;\n      &lt;div class=\&quot;small muted\&quot;&gt;%FOOTER%&lt;/div&gt;\n    &lt;/footer&gt;\n  &lt;/body&gt;\n&lt;/html&gt;&quot;</span></code>
-      </dt>
-      
+      <li class="entry-summary">
+        <a href="#new%28at%3APoint%2Clabel%3AString%2Chref%3AString%2Cbox%3ASize%2Cpressed%3ABool%3Dfalse%2Caria_label%3AString%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(at : Point, label : String, href : String, box : Size, pressed : Bool = <span class="n">false</span>, aria_label : String | Nil = <span class="n">nil</span>)</a>
+        
+      </li>
     
-      <dt class="entry-const" id="CSS_TEMPLATE">
-        <strong>CSS_TEMPLATE</strong> = <code><span class="s">&quot;:root{ --gap:14px; --radius:14px; --border:#e5e7eb; --bg:#ffffff; --muted:#6b7280 }\n*{ box-sizing:border-box }\nbody{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:#f6f7f9 }\n.header{ position:sticky; top:0; z-index:50; border-bottom:1px solid var(--border); background:var(--bg) }\n.max{ max-width:%MAX_WIDTH%; margin:0 auto; padding:12px 16px }\n.toolbar{ display:flex; gap:var(--gap); align-items:center }\n.toolbar .spacer{ flex:1 }\n.grid{ display:grid; grid-template-columns:1fr %SIDEBAR_WIDTH%; gap:var(--gap); align-items:start }\n.main{ padding:20px 16px }\n.card{ background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px }\n.h1{ font-size:28px; font-weight:700; margin:0 0 6px }\n.h2{ font-size:20px; font-weight:600; margin:0 0 6px }\n.h3{ font-size:16px; font-weight:600; margin:0 0 6px; color:#374151 }\n.p{ margin:6px 0; color:#111827 }\n.muted{ color:var(--muted) }\n.btn{ display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px; border:1px solid var(--border); background:#fff; cursor:pointer }\n.btn:hover{ background:#fafafa }\n.row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center }\n.stat{ display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border:1px solid var(--border); border-radius:12px }\n.stat .label{ color:var(--muted) }\n.input{ padding:10px 12px; border:1px solid var(--border); border-radius:12px; min-width:0 }\n.divider{ height:1px; background:var(--border); margin:10px 0 }\n.small{ font-size:12px; color:var(--muted) }&quot;</span></code>
-      </dt>
-      
-    
-      <dt class="entry-const" id="HTMX">
-        <strong>HTMX</strong> = <code><span class="s">&quot;&lt;script src=\&quot;https://unpkg.com/htmx.org@1.9.12\&quot;&gt;&lt;/script&gt;&quot;</span></code>
-      </dt>
-      
-    
-  </dl>
+  </ul>
 
-
-
-  
 
   
 
@@ -279,12 +255,27 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#render_page%28engine%3AEngine%2Cslug%3AString%29%3AString-instance-method" class="signature"><strong>#render_page</strong>(engine : Engine, slug : String) : String</a>
+        <a href="#aria_label%3AString%7CNil-instance-method" class="signature"><strong>#aria_label</strong> : String | Nil</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#render_widget%28engine%3AEngine%2Cw%3AWidgetRow%29%3AString-instance-method" class="signature"><strong>#render_widget</strong>(engine : Engine, w : WidgetRow) : String</a>
+        <a href="#box%3ASize-instance-method" class="signature"><strong>#box</strong> : Size</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#href%3AString-instance-method" class="signature"><strong>#href</strong> : String</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#label%3AString-instance-method" class="signature"><strong>#label</strong> : String</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#pressed%3ABool-instance-method" class="signature"><strong>#pressed</strong> : Bool</a>
         
       </li>
     
@@ -294,9 +285,92 @@
 
   <div class="methods-inherited">
     
+      
+
+  <h3>Instance methods inherited from class <code><a href="../Layout/Node.html">Layout::Node</a></code></h3>
+  
+  
+    <a href="../Layout/Node.html#at%3APoint-instance-method" class="tooltip">
+      <span>at : Point</span>
+    at</a>
+    
+  
+
+
+      
+
+  <h3>Constructor methods inherited from class <code><a href="../Layout/Node.html">Layout::Node</a></code></h3>
+  
+  
+    <a href="../Layout/Node.html#new%28at%3APoint%29-class-method" class="tooltip">
+      <span>new(at : Point)</span>
+    new</a>
+    
+  
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
   </div>
 
   
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="new(at:Point,label:String,href:String,box:Size,pressed:Bool=false,aria_label:String|Nil=nil)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(at : <a href="../Layout/Point.html">Point</a>, label : String, href : String, box : <a href="../Layout/Size.html">Size</a>, pressed : Bool = <span class="n">false</span>, aria_label : String | Nil = <span class="n">nil</span>)
+
+        <a class="method-permalink" href="#new%28at%3APoint%2Clabel%3AString%2Chref%3AString%2Cbox%3ASize%2Cpressed%3ABool%3Dfalse%2Caria_label%3AString%7CNil%3Dnil%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/layout.cr#L52" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
 
   
 
@@ -312,34 +386,82 @@
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="render_page(engine:Engine,slug:String):String-instance-method">
+    <div class="entry-detail" id="aria_label:String|Nil-instance-method">
       <div class="signature">
         
-        def <strong>render_page</strong>(engine : <a href="../SemanticUI/Engine.html">Engine</a>, slug : String) : String
+        def <strong>aria_label</strong> : String | Nil
 
-        <a class="method-permalink" href="#render_page%28engine%3AEngine%2Cslug%3AString%29%3AString-instance-method">#</a>
+        <a class="method-permalink" href="#aria_label%3AString%7CNil-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/semantic_ui.cr#L370" target="_blank">View source</a>]
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/layout.cr#L50" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="render_widget(engine:Engine,w:WidgetRow):String-instance-method">
+    <div class="entry-detail" id="box:Size-instance-method">
       <div class="signature">
         
-        def <strong>render_widget</strong>(engine : <a href="../SemanticUI/Engine.html">Engine</a>, w : <a href="../SemanticUI/WidgetRow.html">WidgetRow</a>) : String
+        def <strong>box</strong> : <a href="../Layout/Size.html">Size</a>
 
-        <a class="method-permalink" href="#render_widget%28engine%3AEngine%2Cw%3AWidgetRow%29%3AString-instance-method">#</a>
+        <a class="method-permalink" href="#box%3ASize-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/semantic_ui.cr#L349" target="_blank">View source</a>]
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/layout.cr#L48" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="href:String-instance-method">
+      <div class="signature">
+        
+        def <strong>href</strong> : String
+
+        <a class="method-permalink" href="#href%3AString-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/layout.cr#L47" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="label:String-instance-method">
+      <div class="signature">
+        
+        def <strong>label</strong> : String
+
+        <a class="method-permalink" href="#label%3AString-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/layout.cr#L46" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="pressed:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>pressed</strong> : Bool
+
+        <a class="method-permalink" href="#pressed%3ABool-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/jadonk/chatgpt-web-server/blob/be84feda0288f2af4ab484321c353463e57059db/src/layout.cr#L49" target="_blank">View source</a>]
         
       </div>
     </div>
